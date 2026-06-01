@@ -10,7 +10,7 @@ import { RemoveMemberFromDepartmentUseCase } from '../domain/usecases/remove-mem
 import type { CreateMemberDto } from '../presentation/dto/create-member.dto';
 import type { UpdateMemberDto } from '../presentation/dto/update-member.dto';
 import type { MemberFiltersDto } from '../presentation/dto/member-filters.dto';
-import type { Member, MemberDepartment } from '../domain/member';
+import type { Member, AssignedDepartment } from '../domain/member';
 import type { MemberFilters } from '../domain/i-member.repository';
 import { toHttpException } from '../../core/application/http-exception.util';
 
@@ -87,7 +87,7 @@ export class MembersService {
     );
   }
 
-  async findDepartments(memberId: string): Promise<MemberDepartment[]> {
+  async findDepartments(memberId: string): Promise<AssignedDepartment[]> {
     const result = await this.repo.findDepartments(memberId);
     return result.fold(
       (err) => {
@@ -100,14 +100,13 @@ export class MembersService {
   async assignDepartment(
     memberId: string,
     departmentId: string,
-    role?: string,
-  ): Promise<MemberDepartment> {
-    const result = await this.assignDept.execute(memberId, departmentId, role);
-    return result.fold(
+  ): Promise<void> {
+    const result = await this.assignDept.execute(memberId, departmentId);
+    result.fold(
       (err) => {
         throw toHttpException(err.kind, err.message);
       },
-      (d) => d,
+      () => undefined,
     );
   }
 

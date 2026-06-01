@@ -3,10 +3,16 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { MemberStatus, MemberType, ActivityStatus } from '../domain/member';
+import type { FellowshipEntity } from '../../fellowships/infrastructure/fellowship.entity';
+import { DepartmentEntity } from '../../departments/infrastructure/department.entity';
 
 @Entity('members')
 export class MemberEntity {
@@ -32,6 +38,13 @@ export class MemberEntity {
   @Column({ name: 'fellowship_id', type: 'uuid', nullable: true })
   fellowshipId: string | null;
 
+  @ManyToOne('FellowshipEntity', 'members', {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'fellowship_id' })
+  fellowship?: FellowshipEntity;
+
   @Column({
     name: 'member_type',
     type: 'enum',
@@ -53,6 +66,14 @@ export class MemberEntity {
 
   @Column({ name: 'avatar_url', length: 500, nullable: true })
   avatarUrl: string | null;
+
+  @ManyToMany(() => DepartmentEntity, (dept) => dept.members)
+  @JoinTable({
+    name: 'member_departments',
+    joinColumn: { name: 'member_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'department_id', referencedColumnName: 'id' },
+  })
+  departments: DepartmentEntity[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

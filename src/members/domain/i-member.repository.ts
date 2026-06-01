@@ -2,7 +2,7 @@ import type { Either } from '../../core/domain/either';
 import type { DataError } from '../../core/domain/data-error';
 import type {
   Member,
-  MemberDepartment,
+  AssignedDepartment,
   MemberStatus,
   MemberType,
   ActivityStatus,
@@ -58,12 +58,11 @@ export interface IMemberRepository {
   delete(id: string): Promise<Either<DataError, void>>;
   findDepartments(
     memberId: string,
-  ): Promise<Either<DataError, MemberDepartment[]>>;
+  ): Promise<Either<DataError, AssignedDepartment[]>>;
   assignDepartment(
     memberId: string,
     departmentId: string,
-    role?: string,
-  ): Promise<Either<DataError, MemberDepartment>>;
+  ): Promise<Either<DataError, void>>;
   removeDepartment(
     memberId: string,
     departmentId: string,

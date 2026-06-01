@@ -2,9 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import type { MemberEntity } from '../../members/infrastructure/member.entity';
 
 @Entity('departments')
 export class DepartmentEntity {
@@ -16,6 +20,13 @@ export class DepartmentEntity {
 
   @Column({ name: 'head_id', type: 'uuid', nullable: true })
   headId: string | null;
+
+  @ManyToOne('MemberEntity', { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'head_id' })
+  head?: MemberEntity;
+
+  @ManyToMany('MemberEntity', 'departments')
+  members: MemberEntity[];
 
   @Column({ name: 'member_target', type: 'int', default: 0 })
   memberTarget: number;

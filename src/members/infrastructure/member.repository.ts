@@ -2,14 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MemberEntity } from './member.entity';
-import { MemberDepartmentEntity } from './member-department.entity';
 import type {
   IMemberRepository,
   MemberFilters,
   CreateMemberData,
   UpdateMemberData,
 } from '../domain/i-member.repository';
-import type { Member, MemberDepartment } from '../domain/member';
+import type { Member, AssignedDepartment } from '../domain/member';
 import { Either } from '../../core/domain/either';
 import { DataError } from '../../core/domain/data-error';
 
@@ -18,8 +17,6 @@ export class MemberRepository implements IMemberRepository {
   constructor(
     @InjectRepository(MemberEntity)
     private readonly orm: Repository<MemberEntity>,
-    @InjectRepository(MemberDepartmentEntity)
-    private readonly deptOrm: Repository<MemberDepartmentEntity>,
   ) {}
 
   async findAll(
@@ -62,21 +59,15 @@ export class MemberRepository implements IMemberRepository {
         }
       }
       if (filters?.departmentId) {
-        qb.innerJoin(
-          'member_departments',
-          'md',
-          'md.member_id = m.id AND md.department_id = :deptId',
-          {
-            deptId: filters.departmentId,
-          },
-        );
+        qb.innerJoin('m.departments', 'dept', 'dept.id = :deptId', {
+          deptId: filters.departmentId,
+        });
       }
 
       const [entities, total] = await qb
         .skip((page - 1) * limit)
         .take(limit)
         .getManyAndCount();
-
       return Either.right({ data: entities.map(this.toMember), total });
     } catch {
       return Either.left(
@@ -139,10 +130,17 @@ export class MemberRepository implements IMemberRepository {
 
   async findDepartments(
     memberId: string,
-  ): Promise<Either<DataError, MemberDepartment[]>> {
+  ): Promise<Either<DataError, AssignedDepartment[]>> {
     try {
-      const entities = await this.deptOrm.find({ where: { memberId } });
-      return Either.right(entities.map(this.toDept));
+      const member = await this.orm.findOne({
+        where: { id: memberId },
+        relations: ['departments'],
+      });
+      if (!member)
+        return Either.left(DataError.notFound(`Member ${memberId} not found`));
+      return Either.right(
+        member.departments.map((d) => ({ id: d.id, name: d.name })),
+      );
     } catch {
       return Either.left(
         new DataError('NetworkError', 'Failed to fetch member departments'),
@@ -153,16 +151,14 @@ export class MemberRepository implements IMemberRepository {
   async assignDepartment(
     memberId: string,
     departmentId: string,
-    role?: string,
-  ): Promise<Either<DataError, MemberDepartment>> {
+  ): Promise<Either<DataError, void>> {
     try {
-      const entity = this.deptOrm.create({
-        memberId,
-        departmentId,
-        role: role ?? null,
-      });
-      const saved = await this.deptOrm.save(entity);
-      return Either.right(this.toDept(saved));
+      await this.orm
+        .createQueryBuilder()
+        .relation(MemberEntity, 'departments')
+        .of(memberId)
+        .add(departmentId);
+      return Either.right(undefined);
     } catch {
       return Either.left(
         DataError.conflict('Member is already in this department'),
@@ -175,12 +171,11 @@ export class MemberRepository implements IMemberRepository {
     departmentId: string,
   ): Promise<Either<DataError, void>> {
     try {
-      const result = await this.deptOrm.delete({ memberId, departmentId });
-      if (result.affected === 0) {
-        return Either.left(
-          DataError.notFound('Member is not in this department'),
-        );
-      }
+      await this.orm
+        .createQueryBuilder()
+        .relation(MemberEntity, 'departments')
+        .of(memberId)
+        .remove(departmentId);
       return Either.right(undefined);
     } catch {
       return Either.left(
@@ -203,13 +198,5 @@ export class MemberRepository implements IMemberRepository {
     avatarUrl: e.avatarUrl,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
-  });
-
-  private toDept = (e: MemberDepartmentEntity): MemberDepartment => ({
-    id: e.id,
-    memberId: e.memberId,
-    departmentId: e.departmentId,
-    role: e.role,
-    joinedAt: e.joinedAt,
   });
 }

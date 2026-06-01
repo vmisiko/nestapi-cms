@@ -29,10 +29,7 @@ export interface Member {
   updatedAt: Date;
 }
 
-export interface MemberDepartment {
+export interface AssignedDepartment {
   id: string;
-  memberId: string;
-  departmentId: string;
-  role: string | null;
-  joinedAt: string;
+  name: string;
 }
