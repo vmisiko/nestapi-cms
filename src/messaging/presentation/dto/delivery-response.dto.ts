@@ -1,21 +1,47 @@
+import { ApiProperty } from '@nestjs/swagger';
 import type {
   MessageDelivery,
   DeliveryStats,
 } from '../../domain/message-delivery';
 
 export class DeliveryResponseDto {
+  @ApiProperty()
   id: string;
+
+  @ApiProperty()
   messageId: string;
+
+  @ApiProperty()
   memberId: string;
+
+  @ApiProperty()
   memberName: string;
+
+  @ApiProperty()
   phone: string;
+
+  @ApiProperty()
   text: string;
+
+  @ApiProperty()
   status: string;
+
+  @ApiProperty({ nullable: true })
   uwaziRef: string | null;
+
+  @ApiProperty({ nullable: true })
   failureReason: string | null;
+
+  @ApiProperty({ nullable: true })
   sentAt: Date | null;
+
+  @ApiProperty({ nullable: true })
   deliveredAt: Date | null;
+
+  @ApiProperty()
   createdAt: Date;
+
+  @ApiProperty()
   updatedAt: Date;
 
   constructor(d: MessageDelivery) {
@@ -36,10 +62,19 @@ export class DeliveryResponseDto {
 }
 
 export class DeliveryStatsResponseDto {
+  @ApiProperty()
   total: number;
+
+  @ApiProperty()
   pending: number;
+
+  @ApiProperty()
   sent: number;
+
+  @ApiProperty()
   delivered: number;
+
+  @ApiProperty()
   failed: number;
 
   constructor(s: DeliveryStats) {

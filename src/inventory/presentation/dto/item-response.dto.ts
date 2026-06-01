@@ -1,15 +1,35 @@
+import { ApiProperty } from '@nestjs/swagger';
 import type { InventoryItem } from '../../domain/inventory-item';
 
 export class ItemResponseDto {
+  @ApiProperty()
   id: string;
+
+  @ApiProperty()
   name: string;
+
+  @ApiProperty()
   categoryId: string;
+
+  @ApiProperty()
   quantity: number;
+
+  @ApiProperty()
   unit: string;
+
+  @ApiProperty()
   minStockLevel: number;
+
+  @ApiProperty({ nullable: true })
   location: string | null;
+
+  @ApiProperty({ nullable: true })
   description: string | null;
+
+  @ApiProperty()
   createdAt: Date;
+
+  @ApiProperty()
   updatedAt: Date;
 
   constructor(i: InventoryItem) {

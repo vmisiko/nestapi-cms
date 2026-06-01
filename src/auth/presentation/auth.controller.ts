@@ -1,16 +1,26 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCookieAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from '../application/auth.service';
 import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UserResponseDto } from '../../users/presentation/dto/user-response.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '../../common/guards/jwt-refresh.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -27,7 +37,10 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: 'Login and receive access token' })
-  @ApiResponse({ status: 200, description: 'Returns accessToken; sets refresh_token cookie' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns accessToken; sets refresh_token cookie',
+  })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -62,6 +75,30 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
     });
     return { accessToken, tokenType: 'Bearer' };
+  }
+
+  @ApiOperation({ summary: 'Get the currently authenticated user profile' })
+  @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: UserResponseDto })
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async me(@CurrentUser('sub') userId: string) {
+    const user = await this.authService.getMe(userId);
+    return new UserResponseDto(user);
+  }
+
+  @ApiOperation({ summary: 'Change own password' })
+  @ApiBearerAuth()
+  @ApiResponse({ status: 204, description: 'Password updated' })
+  @ApiResponse({ status: 401, description: 'Current password incorrect' })
+  @Patch('me/password')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async changePassword(
+    @CurrentUser('sub') userId: string,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    await this.authService.changePassword(userId, dto);
   }
 
   @ApiOperation({ summary: 'Logout and clear refresh token' })

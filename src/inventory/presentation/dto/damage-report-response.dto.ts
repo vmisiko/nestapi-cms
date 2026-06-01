@@ -1,15 +1,35 @@
+import { ApiProperty } from '@nestjs/swagger';
 import type { DamageReport } from '../../domain/damage-report';
 
 export class DamageReportResponseDto {
+  @ApiProperty()
   id: string;
+
+  @ApiProperty()
   itemId: string;
+
+  @ApiProperty()
   quantityDamaged: number;
+
+  @ApiProperty()
   description: string;
+
+  @ApiProperty()
   reportedBy: string;
+
+  @ApiProperty()
   status: string;
+
+  @ApiProperty({ nullable: true })
   resolvedAt: Date | null;
+
+  @ApiProperty({ nullable: true })
   notes: string | null;
+
+  @ApiProperty()
   createdAt: Date;
+
+  @ApiProperty()
   updatedAt: Date;
 
   constructor(r: DamageReport) {

@@ -12,6 +12,7 @@ import { MembersModule } from './members/members.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { InventoryModule } from './inventory/inventory.module';
     AttendanceModule,
     MessagingModule,
     InventoryModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

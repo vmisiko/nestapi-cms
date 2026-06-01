@@ -1,17 +1,41 @@
+import { ApiProperty } from '@nestjs/swagger';
 import type { Message } from '../../domain/message';
 
 export class MessageResponseDto {
+  @ApiProperty()
   id: string;
+
+  @ApiProperty()
   title: string;
+
+  @ApiProperty()
   body: string;
+
+  @ApiProperty()
   type: string;
+
+  @ApiProperty()
   targetGroup: string;
+
+  @ApiProperty({ nullable: true })
   targetId: string | null;
+
+  @ApiProperty()
   status: string;
+
+  @ApiProperty({ nullable: true })
   scheduledAt: Date | null;
+
+  @ApiProperty({ nullable: true })
   sentAt: Date | null;
+
+  @ApiProperty()
   createdBy: string;
+
+  @ApiProperty()
   createdAt: Date;
+
+  @ApiProperty()
   updatedAt: Date;
 
   constructor(m: Message) {

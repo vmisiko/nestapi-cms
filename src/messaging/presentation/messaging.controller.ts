@@ -11,6 +11,12 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { MessagingService } from '../application/messaging.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
@@ -27,12 +33,16 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '../../users/domain/user';
 
+@ApiTags('Messaging')
 @Controller('messaging')
 export class MessagingController {
   constructor(private readonly service: MessagingService) {}
 
   // ─── Message CRUD ────────────────────────────────────────────────────────────
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List all messages' })
+  @ApiResponse({ status: 200, type: [MessageResponseDto] })
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   async findAll() {
@@ -40,12 +50,18 @@ export class MessagingController {
     return messages.map((m) => new MessageResponseDto(m));
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a message by ID' })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return new MessageResponseDto(await this.service.findById(id));
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new message (admin+)' })
+  @ApiResponse({ status: 201, type: MessageResponseDto })
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
@@ -56,6 +72,9 @@ export class MessagingController {
     return new MessageResponseDto(await this.service.create(dto, userId));
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a message (admin+)' })
+  @ApiResponse({ status: 200, type: MessageResponseDto })
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
@@ -66,6 +85,9 @@ export class MessagingController {
     return new MessageResponseDto(await this.service.update(id, dto));
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a message (super_admin only)' })
+  @ApiResponse({ status: 204, description: 'Message deleted' })
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN)
@@ -80,6 +102,11 @@ export class MessagingController {
    * Dispatch a message to its target group via Uwazii SMS.
    * Returns a summary of how many were sent, failed, or skipped.
    */
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Dispatch a message to its target group via SMS (admin+)',
+  })
+  @ApiResponse({ status: 201, type: SendResultDto })
   @Post(':id/send')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
@@ -91,6 +118,11 @@ export class MessagingController {
    * List every individual SMS delivery record for a message.
    * Each row represents one member recipient and tracks their delivery status.
    */
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'List individual SMS delivery records for a message',
+  })
+  @ApiResponse({ status: 200, type: [DeliveryResponseDto] })
   @Get(':id/deliveries')
   @UseGuards(JwtAuthGuard, RolesGuard)
   async getDeliveries(@Param('id', ParseUUIDPipe) id: string) {
@@ -102,6 +134,9 @@ export class MessagingController {
    * Aggregated delivery stats for a message:
    * { total, pending, sent, delivered, failed }
    */
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get aggregated delivery stats for a message' })
+  @ApiResponse({ status: 200, type: DeliveryStatsResponseDto })
   @Get(':id/deliveries/stats')
   @UseGuards(JwtAuthGuard, RolesGuard)
   async getDeliveryStats(@Param('id', ParseUUIDPipe) id: string) {
@@ -116,6 +151,8 @@ export class MessagingController {
    * Public endpoint — no auth. Uwazii posts delivery status updates here.
    * Set UWAZII_CALLBACK_URL=https://yourdomain.com/messaging/dlr
    */
+  @ApiOperation({ summary: 'Uwazii DLR delivery callback (public)' })
+  @ApiResponse({ status: 200, description: 'DLR received' })
   @Post('dlr')
   @HttpCode(HttpStatus.OK)
   async handleDlr(@Body() dto: UwaziiDlrDto) {

@@ -113,6 +113,10 @@ export class UsersService {
     await this.updateUserUseCase.execute(id, { lastLoginAt: new Date() });
   }
 
+  async updatePasswordHash(id: string, passwordHash: string) {
+    await this.updateUserUseCase.execute(id, { passwordHash });
+  }
+
   private toHttp(kind: DataErrorKind, message: string): HttpException {
     const map: Record<DataErrorKind, HttpStatus> = {
       NotFoundError: HttpStatus.NOT_FOUND,

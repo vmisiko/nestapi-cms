@@ -12,6 +12,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { MembersService } from '../application/members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
@@ -22,35 +28,52 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../users/domain/user';
 
+@ApiTags('Members')
+@ApiBearerAuth()
 @Controller('members')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class MembersController {
   constructor(private readonly service: MembersService) {}
 
   @Get()
+  @ApiOperation({
+    summary: 'List members with optional filters and pagination',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '{ data: MemberResponseDto[], total: number }',
+  })
   async findAll(@Query() query: MemberFiltersDto) {
     const { data, total } = await this.service.findAll(query);
     return { data: data.map((m) => new MemberResponseDto(m)), total };
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a member by ID' })
+  @ApiResponse({ status: 200, type: MemberResponseDto })
+  @ApiResponse({ status: 404, description: 'Member not found' })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return new MemberResponseDto(await this.service.findById(id));
   }
 
   @Get(':id/departments')
+  @ApiOperation({ summary: "List a member's assigned departments" })
   async findDepartments(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findDepartments(id);
   }
 
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({ summary: 'Create a new member' })
+  @ApiResponse({ status: 201, type: MemberResponseDto })
   async create(@Body() dto: CreateMemberDto) {
     return new MemberResponseDto(await this.service.create(dto));
   }
 
   @Patch(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({ summary: 'Update a member' })
+  @ApiResponse({ status: 200, type: MemberResponseDto })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateMemberDto,
@@ -61,12 +84,16 @@ export class MembersController {
   @Delete(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a member' })
+  @ApiResponse({ status: 204 })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.service.delete(id);
   }
 
   @Post(':id/departments/:departmentId')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @ApiOperation({ summary: 'Assign a member to a department' })
+  @ApiResponse({ status: 201 })
   async assignDepartment(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('departmentId', ParseUUIDPipe) departmentId: string,
@@ -77,6 +104,8 @@ export class MembersController {
   @Delete(':id/departments/:departmentId')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Remove a member from a department' })
+  @ApiResponse({ status: 204 })
   async removeDepartment(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('departmentId', ParseUUIDPipe) departmentId: string,

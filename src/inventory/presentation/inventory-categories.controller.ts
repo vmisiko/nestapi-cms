@@ -11,6 +11,12 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { InventoryService } from '../application/inventory.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -20,28 +26,38 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../users/domain/user';
 
+@ApiTags('Inventory — Categories')
+@ApiBearerAuth()
 @Controller('inventory/categories')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class InventoryCategoriesController {
   constructor(private readonly service: InventoryService) {}
 
+  @ApiOperation({ summary: 'List all inventory categories' })
+  @ApiResponse({ status: 200, type: [CategoryResponseDto] })
   @Get()
   async findAll() {
     const cats = await this.service.findAllCategories();
     return cats.map((c) => new CategoryResponseDto(c));
   }
 
+  @ApiOperation({ summary: 'Get an inventory category by ID' })
+  @ApiResponse({ status: 200, type: CategoryResponseDto })
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return new CategoryResponseDto(await this.service.findCategoryById(id));
   }
 
+  @ApiOperation({ summary: 'Create a new inventory category (admin+)' })
+  @ApiResponse({ status: 201, type: CategoryResponseDto })
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async create(@Body() dto: CreateCategoryDto) {
     return new CategoryResponseDto(await this.service.createCategory(dto));
   }
 
+  @ApiOperation({ summary: 'Update an inventory category (admin+)' })
+  @ApiResponse({ status: 200, type: CategoryResponseDto })
   @Patch(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async update(
@@ -51,6 +67,8 @@ export class InventoryCategoriesController {
     return new CategoryResponseDto(await this.service.updateCategory(id, dto));
   }
 
+  @ApiOperation({ summary: 'Delete an inventory category (super_admin only)' })
+  @ApiResponse({ status: 204, description: 'Category deleted' })
   @Delete(':id')
   @Roles(UserRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

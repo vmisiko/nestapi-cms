@@ -6,6 +6,7 @@ import { UsersService } from '../../users/application/users.service';
 import { UserRepository } from '../../users/infrastructure/user.repository';
 import { LoginUseCase } from '../domain/usecases/login.usecase';
 import type { LoginDto } from '../presentation/dto/login.dto';
+import type { ChangePasswordDto } from '../presentation/dto/change-password.dto';
 import type { User } from '../../users/domain/user';
 
 @Injectable()
@@ -48,6 +49,28 @@ export class AuthService {
     const tokens = await this.generateTokens(user);
     await this.storeRefreshHash(user.id, tokens.refreshToken);
     return tokens;
+  }
+
+  async getMe(userId: string): Promise<User> {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    return user;
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+    const valid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!valid) {
+      throw new HttpException(
+        'Current password is incorrect',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const newHash = await bcrypt.hash(dto.newPassword, 10);
+    await this.usersService.updatePasswordHash(userId, newHash);
   }
 
   async logout(userId: string) {
