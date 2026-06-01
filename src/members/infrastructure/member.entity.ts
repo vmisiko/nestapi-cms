@@ -25,11 +25,11 @@ export class MemberEntity {
   @Column({ name: 'last_name', length: 100 })
   lastName: string;
 
-  @Column({ length: 30, nullable: true })
+  @Column({ type: 'varchar', length: 30, nullable: true })
   phone: string | null;
 
   @Index({ unique: true, where: '"email" IS NOT NULL' })
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   email: string | null;
 
   @Column({ type: 'enum', enum: MemberStatus, default: MemberStatus.GUEST })
@@ -64,7 +64,7 @@ export class MemberEntity {
   @Column({ name: 'joined_at', type: 'date', default: () => 'CURRENT_DATE' })
   joinedAt: string;
 
-  @Column({ name: 'avatar_url', length: 500, nullable: true })
+  @Column({ type: 'varchar', name: 'avatar_url', length: 500, nullable: true })
   avatarUrl: string | null;
 
   @ManyToMany(() => DepartmentEntity, (dept) => dept.members)

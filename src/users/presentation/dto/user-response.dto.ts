@@ -1,13 +1,27 @@
+import { ApiProperty } from '@nestjs/swagger';
 import type { User } from '../../domain/user';
 import { UserRole } from '../../domain/user';
 
 export class UserResponseDto {
+  @ApiProperty()
   id: string;
+
+  @ApiProperty()
   email: string;
+
+  @ApiProperty({ enum: UserRole })
   role: UserRole;
+
+  @ApiProperty()
   isActive: boolean;
+
+  @ApiProperty({ nullable: true })
   lastLoginAt: Date | null;
+
+  @ApiProperty()
   createdAt: Date;
+
+  @ApiProperty()
   updatedAt: Date;
 
   constructor(user: User) {

@@ -33,7 +33,7 @@ export class InventoryItemEntity {
   @Column({ name: 'min_stock_level', type: 'int', default: 0 })
   minStockLevel: number;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   location: string | null;
 
   @Column({ type: 'text', nullable: true })

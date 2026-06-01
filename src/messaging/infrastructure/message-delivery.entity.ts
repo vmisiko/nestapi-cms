@@ -43,7 +43,7 @@ export class MessageDeliveryEntity {
   })
   status: DeliveryStatus;
 
-  @Column({ name: 'uwazii_ref', length: 100, nullable: true })
+  @Column({ name: 'uwazii_ref', type: 'varchar', length: 100, nullable: true })
   @Index({ unique: true, where: '"uwazii_ref" IS NOT NULL' })
   uwaziRef: string | null;
 

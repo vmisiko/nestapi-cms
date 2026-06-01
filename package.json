@@ -22,7 +22,8 @@
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
     "seed:admin": "ts-node seeds/seed-admin.ts",
-    "db:setup": "ts-node seeds/seed-admin.ts"
+    "db:setup": "ts-node seeds/seed-admin.ts",
+    "swagger:generate": "ts-node scripts/generate-swagger.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -31,6 +32,7 @@
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.4.4",
     "@nestjs/typeorm": "^11.0.1",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",

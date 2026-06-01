@@ -3,6 +3,9 @@
 /node_modules
 /build
 
+# generated
+# swagger.json
+
 # Logs
 logs
 *.log

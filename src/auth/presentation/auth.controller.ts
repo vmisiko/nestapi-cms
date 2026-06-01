@@ -7,6 +7,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthService } from '../application/auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -20,10 +21,14 @@ const REFRESH_COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Login and receive access token' })
+  @ApiResponse({ status: 200, description: 'Returns accessToken; sets refresh_token cookie' })
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -38,6 +43,9 @@ export class AuthController {
     return { accessToken, tokenType: 'Bearer' };
   }
 
+  @ApiOperation({ summary: 'Refresh access token using refresh_token cookie' })
+  @ApiCookieAuth('refresh_token')
+  @ApiResponse({ status: 200, description: 'Returns new accessToken' })
   @Post('refresh')
   @UseGuards(JwtRefreshGuard)
   @HttpCode(HttpStatus.OK)
@@ -56,6 +64,9 @@ export class AuthController {
     return { accessToken, tokenType: 'Bearer' };
   }
 
+  @ApiOperation({ summary: 'Logout and clear refresh token' })
+  @ApiBearerAuth()
+  @ApiResponse({ status: 204, description: 'Logged out successfully' })
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)

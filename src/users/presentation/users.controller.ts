@@ -11,6 +11,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from '../application/users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -20,11 +21,15 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../domain/user';
 
+@ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @ApiOperation({ summary: 'List all users (admin+)' })
+  @ApiResponse({ status: 200, type: [UserResponseDto] })
   @Get()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async findAll() {
@@ -32,6 +37,8 @@ export class UsersController {
     return users.map((u) => new UserResponseDto(u));
   }
 
+  @ApiOperation({ summary: 'Get a user by ID (admin+)' })
+  @ApiResponse({ status: 200, type: UserResponseDto })
   @Get(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
@@ -39,6 +46,8 @@ export class UsersController {
     return new UserResponseDto(user);
   }
 
+  @ApiOperation({ summary: 'Create a new user (super_admin only)' })
+  @ApiResponse({ status: 201, type: UserResponseDto })
   @Post()
   @Roles(UserRole.SUPER_ADMIN)
   async create(@Body() dto: CreateUserDto) {
@@ -46,6 +55,8 @@ export class UsersController {
     return new UserResponseDto(user);
   }
 
+  @ApiOperation({ summary: 'Update a user (admin+)' })
+  @ApiResponse({ status: 200, type: UserResponseDto })
   @Patch(':id')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   async update(
@@ -56,6 +67,8 @@ export class UsersController {
     return new UserResponseDto(user);
   }
 
+  @ApiOperation({ summary: 'Delete a user (super_admin only)' })
+  @ApiResponse({ status: 204, description: 'User deleted' })
   @Delete(':id')
   @Roles(UserRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
