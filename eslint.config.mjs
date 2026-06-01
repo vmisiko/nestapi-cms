@@ -29,7 +29,19 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn'
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+    },
+  },
+  {
+    files: ['**/*.spec.ts'],
+    rules: {
+      // Jest mock assertions require passing unbound method references — expected pattern
+      '@typescript-eslint/unbound-method': 'off',
+      // supertest res.body is typed as any; typing every assertion adds noise without value
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      // fold callbacks may infer any due to Either's internal casts
+      '@typescript-eslint/no-unsafe-return': 'off',
     },
   },
 );
