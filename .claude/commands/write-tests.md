@@ -118,7 +118,16 @@ Test:
 - Auth guard blocks unauthenticated requests (mock `JwtAuthGuard` for unit tests)
 
 ## Test File Naming
-Place test files alongside the source: `user.repository.spec.ts` next to `user.repository.ts`.
+Always place test files in a `__tests__/` folder inside the directory being tested — never alongside the source file.
+
+```
+src/<module>/application/__tests__/<module>.service.spec.ts
+src/<module>/domain/usecases/__tests__/<module>.usecases.spec.ts
+src/<module>/infrastructure/__tests__/<module>.repository.spec.ts
+src/<module>/presentation/__tests__/<module>.controller.spec.ts
+```
+
+Do **not** create `*.spec.ts` files next to source files. Every directory that has tests gets exactly one `__tests__/` subfolder.
 
 ## Coverage Goals
 - All use-cases: happy path + every error path (NotFound, Conflict, Unauthorized, etc.)

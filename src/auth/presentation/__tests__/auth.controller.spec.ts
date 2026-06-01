@@ -5,11 +5,11 @@ import {
   ExecutionContext,
 } from '@nestjs/common';
 import * as request from 'supertest';
-import { AuthController } from './auth.controller';
-import { AuthService } from '../application/auth.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { JwtRefreshGuard } from '../../common/guards/jwt-refresh.guard';
-import { makeUser } from '../../test/user.fixture';
+import { AuthController } from '../auth.controller';
+import { AuthService } from '../../application/auth.service';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { JwtRefreshGuard } from '../../../common/guards/jwt-refresh.guard';
+import { makeUser } from '../../../test/user.fixture';
 
 const mockAuthService = () => ({
   login: jest.fn(),
