@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DepartmentRepository } from './department.repository';
-import { DepartmentEntity } from './department.entity';
-import { makeDepartment } from '../../test/fixtures';
+import { DepartmentRepository } from '../department.repository';
+import { DepartmentEntity } from '../department.entity';
+import { makeDepartment } from '../../../test/fixtures';
 
 const makeEntity = (): DepartmentEntity => {
   const e = new DepartmentEntity();

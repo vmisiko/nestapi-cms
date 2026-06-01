@@ -1,7 +1,7 @@
-import { DeleteUserUseCase } from './delete-user.usecase';
-import { IUserRepository } from '../i-user.repository';
-import { Either } from '../../../core/domain/either';
-import { DataError } from '../../../core/domain/data-error';
+import { DeleteUserUseCase } from '../delete-user.usecase';
+import { IUserRepository } from '../../i-user.repository';
+import { Either } from '../../../../core/domain/either';
+import { DataError } from '../../../../core/domain/data-error';
 
 describe('DeleteUserUseCase', () => {
   let useCase: DeleteUserUseCase;

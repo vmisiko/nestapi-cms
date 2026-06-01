@@ -1,12 +1,12 @@
-import { Either } from '../../../core/domain/either';
-import { DataError } from '../../../core/domain/data-error';
-import { IDepartmentRepository } from '../i-department.repository';
-import { makeDepartment } from '../../../test/fixtures';
-import { CreateDepartmentUseCase } from './create-department.usecase';
-import { GetDepartmentsUseCase } from './get-departments.usecase';
-import { GetDepartmentByIdUseCase } from './get-department-by-id.usecase';
-import { UpdateDepartmentUseCase } from './update-department.usecase';
-import { DeleteDepartmentUseCase } from './delete-department.usecase';
+import { Either } from '../../../../core/domain/either';
+import { DataError } from '../../../../core/domain/data-error';
+import { IDepartmentRepository } from '../../i-department.repository';
+import { makeDepartment } from '../../../../test/fixtures';
+import { CreateDepartmentUseCase } from '../create-department.usecase';
+import { GetDepartmentsUseCase } from '../get-departments.usecase';
+import { GetDepartmentByIdUseCase } from '../get-department-by-id.usecase';
+import { UpdateDepartmentUseCase } from '../update-department.usecase';
+import { DeleteDepartmentUseCase } from '../delete-department.usecase';
 
 const makeRepo = (): jest.Mocked<IDepartmentRepository> => ({
   findAll: jest.fn(),

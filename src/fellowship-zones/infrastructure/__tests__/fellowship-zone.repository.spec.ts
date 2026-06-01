@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FellowshipZoneRepository } from './fellowship-zone.repository';
-import { FellowshipZoneEntity } from './fellowship-zone.entity';
-import { makeZone } from '../../test/fixtures';
+import { FellowshipZoneRepository } from '../fellowship-zone.repository';
+import { FellowshipZoneEntity } from '../fellowship-zone.entity';
+import { makeZone } from '../../../test/fixtures';
 
 const makeEntity = (): FellowshipZoneEntity => {
   const e = new FellowshipZoneEntity();

@@ -1,9 +1,9 @@
 import * as bcrypt from 'bcryptjs';
-import { LoginUseCase } from './login.usecase';
-import { IUserRepository } from '../../../users/domain/i-user.repository';
-import { Either } from '../../../core/domain/either';
-import { DataError } from '../../../core/domain/data-error';
-import { makeUser } from '../../../test/user.fixture';
+import { LoginUseCase } from '../login.usecase';
+import { IUserRepository } from '../../../../users/domain/i-user.repository';
+import { Either } from '../../../../core/domain/either';
+import { DataError } from '../../../../core/domain/data-error';
+import { makeUser } from '../../../../test/user.fixture';
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;

@@ -1,11 +1,11 @@
 import { Test } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { FellowshipsService } from './fellowships.service';
-import { FellowshipRepository } from '../infrastructure/fellowship.repository';
-import { Either } from '../../core/domain/either';
-import { DataError } from '../../core/domain/data-error';
-import { makeFellowship } from '../../test/fixtures';
-import { ActivityStatus } from '../../core/domain/enums';
+import { FellowshipsService } from '../fellowships.service';
+import { FellowshipRepository } from '../../infrastructure/fellowship.repository';
+import { Either } from '../../../core/domain/either';
+import { DataError } from '../../../core/domain/data-error';
+import { makeFellowship } from '../../../test/fixtures';
+import { ActivityStatus } from '../../../core/domain/enums';
 
 const mockFellowshipRepository = () => ({
   findAll: jest.fn(),

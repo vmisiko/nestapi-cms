@@ -1,8 +1,8 @@
-import { GetUsersUseCase } from './get-users.usecase';
-import { IUserRepository } from '../i-user.repository';
-import { Either } from '../../../core/domain/either';
-import { DataError } from '../../../core/domain/data-error';
-import { makeUser } from '../../../test/user.fixture';
+import { GetUsersUseCase } from '../get-users.usecase';
+import { IUserRepository } from '../../i-user.repository';
+import { Either } from '../../../../core/domain/either';
+import { DataError } from '../../../../core/domain/data-error';
+import { makeUser } from '../../../../test/user.fixture';
 
 describe('GetUsersUseCase', () => {
   let useCase: GetUsersUseCase;

@@ -1,9 +1,9 @@
-import { UpdateUserUseCase } from './update-user.usecase';
-import { IUserRepository } from '../i-user.repository';
-import { Either } from '../../../core/domain/either';
-import { DataError } from '../../../core/domain/data-error';
-import { UserRole } from '../user';
-import { makeUser } from '../../../test/user.fixture';
+import { UpdateUserUseCase } from '../update-user.usecase';
+import { IUserRepository } from '../../i-user.repository';
+import { Either } from '../../../../core/domain/either';
+import { DataError } from '../../../../core/domain/data-error';
+import { UserRole } from '../../user';
+import { makeUser } from '../../../../test/user.fixture';
 
 describe('UpdateUserUseCase', () => {
   let useCase: UpdateUserUseCase;

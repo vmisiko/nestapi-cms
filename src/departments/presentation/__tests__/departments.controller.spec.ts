@@ -7,12 +7,12 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import * as request from 'supertest';
-import { DepartmentsController } from './departments.controller';
-import { DepartmentsService } from '../application/departments.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { UserRole } from '../../users/domain/user';
-import { makeDepartment } from '../../test/fixtures';
+import { DepartmentsController } from '../departments.controller';
+import { DepartmentsService } from '../../application/departments.service';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { UserRole } from '../../../users/domain/user';
+import { makeDepartment } from '../../../test/fixtures';
 
 const mockDepartmentsService = () => ({
   findAll: jest.fn(),

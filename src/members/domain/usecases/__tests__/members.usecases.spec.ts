@@ -1,15 +1,15 @@
-import { Either } from '../../../core/domain/either';
-import { DataError } from '../../../core/domain/data-error';
-import { IMemberRepository } from '../i-member.repository';
-import { makeMember, ID1, ID2 } from '../../../test/fixtures';
-import { CreateMemberUseCase } from './create-member.usecase';
-import { GetMembersUseCase } from './get-members.usecase';
-import { GetMemberByIdUseCase } from './get-member-by-id.usecase';
-import { UpdateMemberUseCase } from './update-member.usecase';
-import { DeleteMemberUseCase } from './delete-member.usecase';
-import { AssignMemberToDepartmentUseCase } from './assign-member-to-department.usecase';
-import { RemoveMemberFromDepartmentUseCase } from './remove-member-from-department.usecase';
-import { MemberStatus } from '../member';
+import { Either } from '../../../../core/domain/either';
+import { DataError } from '../../../../core/domain/data-error';
+import { IMemberRepository } from '../../i-member.repository';
+import { makeMember, ID1, ID2 } from '../../../../test/fixtures';
+import { CreateMemberUseCase } from '../create-member.usecase';
+import { GetMembersUseCase } from '../get-members.usecase';
+import { GetMemberByIdUseCase } from '../get-member-by-id.usecase';
+import { UpdateMemberUseCase } from '../update-member.usecase';
+import { DeleteMemberUseCase } from '../delete-member.usecase';
+import { AssignMemberToDepartmentUseCase } from '../assign-member-to-department.usecase';
+import { RemoveMemberFromDepartmentUseCase } from '../remove-member-from-department.usecase';
+import { MemberStatus } from '../../member';
 
 const makeRepo = (): jest.Mocked<IMemberRepository> => ({
   findAll: jest.fn(),

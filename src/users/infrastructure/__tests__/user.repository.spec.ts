@@ -1,10 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserRepository } from './user.repository';
-import { UserEntity } from './user.entity';
-import { UserRole } from '../domain/user';
-import { makeUser } from '../../test/user.fixture';
+import { UserRepository } from '../user.repository';
+import { UserEntity } from '../user.entity';
+import { UserRole } from '../../domain/user';
+import { makeUser } from '../../../test/user.fixture';
 
 const makeEntity = (): UserEntity => {
   const e = new UserEntity();

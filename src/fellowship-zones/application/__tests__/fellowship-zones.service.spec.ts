@@ -1,10 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { FellowshipZonesService } from './fellowship-zones.service';
-import { FellowshipZoneRepository } from '../infrastructure/fellowship-zone.repository';
-import { Either } from '../../core/domain/either';
-import { DataError } from '../../core/domain/data-error';
-import { makeZone } from '../../test/fixtures';
+import { FellowshipZonesService } from '../fellowship-zones.service';
+import { FellowshipZoneRepository } from '../../infrastructure/fellowship-zone.repository';
+import { Either } from '../../../core/domain/either';
+import { DataError } from '../../../core/domain/data-error';
+import { makeZone } from '../../../test/fixtures';
 
 const mockZoneRepository = () => ({
   findAll: jest.fn(),

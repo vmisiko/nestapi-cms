@@ -7,17 +7,17 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import * as request from 'supertest';
-import { MembersController } from './members.controller';
-import { MembersService } from '../application/members.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { UserRole } from '../../users/domain/user';
+import { MembersController } from '../members.controller';
+import { MembersService } from '../../application/members.service';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { UserRole } from '../../../users/domain/user';
 import {
   makeMember,
   makeAssignedDepartment,
   ID1,
   ID2,
-} from '../../test/fixtures';
+} from '../../../test/fixtures';
 
 const mockMembersService = () => ({
   findAll: jest.fn(),

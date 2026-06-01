@@ -1,15 +1,15 @@
 import { Test } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { MembersService } from './members.service';
-import { MemberRepository } from '../infrastructure/member.repository';
-import { Either } from '../../core/domain/either';
-import { DataError } from '../../core/domain/data-error';
+import { MembersService } from '../members.service';
+import { MemberRepository } from '../../infrastructure/member.repository';
+import { Either } from '../../../core/domain/either';
+import { DataError } from '../../../core/domain/data-error';
 import {
   makeMember,
   makeAssignedDepartment,
   ID1,
   ID2,
-} from '../../test/fixtures';
+} from '../../../test/fixtures';
 
 const mockMemberRepository = () => ({
   findAll: jest.fn(),

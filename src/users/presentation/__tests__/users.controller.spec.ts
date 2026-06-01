@@ -5,12 +5,12 @@ import {
   ExecutionContext,
 } from '@nestjs/common';
 import * as request from 'supertest';
-import { UsersController } from './users.controller';
-import { UsersService } from '../application/users.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { UserRole } from '../domain/user';
-import { makeUser } from '../../test/user.fixture';
+import { UsersController } from '../users.controller';
+import { UsersService } from '../../application/users.service';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { UserRole } from '../../domain/user';
+import { makeUser } from '../../../test/user.fixture';
 
 const mockUsersService = () => ({
   findAll: jest.fn(),

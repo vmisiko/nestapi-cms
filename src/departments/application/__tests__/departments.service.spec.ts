@@ -1,10 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { DepartmentsService } from './departments.service';
-import { DepartmentRepository } from '../infrastructure/department.repository';
-import { Either } from '../../core/domain/either';
-import { DataError } from '../../core/domain/data-error';
-import { makeDepartment } from '../../test/fixtures';
+import { DepartmentsService } from '../departments.service';
+import { DepartmentRepository } from '../../infrastructure/department.repository';
+import { Either } from '../../../core/domain/either';
+import { DataError } from '../../../core/domain/data-error';
+import { makeDepartment } from '../../../test/fixtures';
 
 const mockDepartmentRepository = () => ({
   findAll: jest.fn(),

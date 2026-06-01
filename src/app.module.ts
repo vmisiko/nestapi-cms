@@ -9,6 +9,9 @@ import { FellowshipZonesModule } from './fellowship-zones/fellowship-zones.modul
 import { FellowshipsModule } from './fellowships/fellowships.module';
 import { DepartmentsModule } from './departments/departments.module';
 import { MembersModule } from './members/members.module';
+import { AttendanceModule } from './attendance/attendance.module';
+import { MessagingModule } from './messaging/messaging.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -29,6 +32,9 @@ import { MembersModule } from './members/members.module';
     FellowshipsModule,
     DepartmentsModule,
     MembersModule,
+    AttendanceModule,
+    MessagingModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,14 +1,14 @@
-import { Either } from '../../../core/domain/either';
-import { DataError } from '../../../core/domain/data-error';
-import { IFellowshipRepository } from '../i-fellowship.repository';
-import { makeFellowship, ID2 } from '../../../test/fixtures';
-import { generateSlug } from '../../../core/domain/slug';
-import { CreateFellowshipUseCase } from './create-fellowship.usecase';
-import { GetFellowshipsUseCase } from './get-fellowships.usecase';
-import { GetFellowshipByIdUseCase } from './get-fellowship-by-id.usecase';
-import { GetFellowshipBySlugUseCase } from './get-fellowship-by-slug.usecase';
-import { UpdateFellowshipUseCase } from './update-fellowship.usecase';
-import { DeleteFellowshipUseCase } from './delete-fellowship.usecase';
+import { Either } from '../../../../core/domain/either';
+import { DataError } from '../../../../core/domain/data-error';
+import { IFellowshipRepository } from '../../i-fellowship.repository';
+import { makeFellowship, ID2 } from '../../../../test/fixtures';
+import { generateSlug } from '../../../../core/domain/slug';
+import { CreateFellowshipUseCase } from '../create-fellowship.usecase';
+import { GetFellowshipsUseCase } from '../get-fellowships.usecase';
+import { GetFellowshipByIdUseCase } from '../get-fellowship-by-id.usecase';
+import { GetFellowshipBySlugUseCase } from '../get-fellowship-by-slug.usecase';
+import { UpdateFellowshipUseCase } from '../update-fellowship.usecase';
+import { DeleteFellowshipUseCase } from '../delete-fellowship.usecase';
 
 const makeRepo = (): jest.Mocked<IFellowshipRepository> => ({
   findAll: jest.fn(),

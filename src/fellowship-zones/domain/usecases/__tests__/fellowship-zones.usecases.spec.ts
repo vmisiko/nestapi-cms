@@ -1,12 +1,12 @@
-import { Either } from '../../../core/domain/either';
-import { DataError } from '../../../core/domain/data-error';
-import { IFellowshipZoneRepository } from '../i-fellowship-zone.repository';
-import { makeZone } from '../../../test/fixtures';
-import { CreateFellowshipZoneUseCase } from './create-fellowship-zone.usecase';
-import { GetFellowshipZonesUseCase } from './get-fellowship-zones.usecase';
-import { GetFellowshipZoneByIdUseCase } from './get-fellowship-zone-by-id.usecase';
-import { UpdateFellowshipZoneUseCase } from './update-fellowship-zone.usecase';
-import { DeleteFellowshipZoneUseCase } from './delete-fellowship-zone.usecase';
+import { Either } from '../../../../core/domain/either';
+import { DataError } from '../../../../core/domain/data-error';
+import { IFellowshipZoneRepository } from '../../i-fellowship-zone.repository';
+import { makeZone } from '../../../../test/fixtures';
+import { CreateFellowshipZoneUseCase } from '../create-fellowship-zone.usecase';
+import { GetFellowshipZonesUseCase } from '../get-fellowship-zones.usecase';
+import { GetFellowshipZoneByIdUseCase } from '../get-fellowship-zone-by-id.usecase';
+import { UpdateFellowshipZoneUseCase } from '../update-fellowship-zone.usecase';
+import { DeleteFellowshipZoneUseCase } from '../delete-fellowship-zone.usecase';
 
 const makeRepo = (): jest.Mocked<IFellowshipZoneRepository> => ({
   findAll: jest.fn(),

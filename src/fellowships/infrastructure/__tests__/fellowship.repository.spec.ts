@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { FellowshipRepository } from './fellowship.repository';
-import { FellowshipEntity } from './fellowship.entity';
-import { makeFellowship } from '../../test/fixtures';
-import { ActivityStatus } from '../../core/domain/enums';
+import { FellowshipRepository } from '../fellowship.repository';
+import { FellowshipEntity } from '../fellowship.entity';
+import { makeFellowship } from '../../../test/fixtures';
+import { ActivityStatus } from '../../../core/domain/enums';
 
 const makeEntity = (): FellowshipEntity => {
   const e = new FellowshipEntity();

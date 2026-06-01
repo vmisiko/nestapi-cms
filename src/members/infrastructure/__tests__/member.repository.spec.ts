@@ -1,8 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MemberRepository } from './member.repository';
-import { MemberEntity } from './member.entity';
-import { makeMember, ID1, ID2 } from '../../test/fixtures';
+import { MemberRepository } from '../member.repository';
+import { MemberEntity } from '../member.entity';
+import { makeMember, ID1, ID2 } from '../../../test/fixtures';
 
 const makeMemberEntity = (): MemberEntity => {
   const e = new MemberEntity();

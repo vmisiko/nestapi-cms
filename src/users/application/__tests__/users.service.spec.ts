@@ -1,12 +1,12 @@
 import { Test } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { UsersService } from './users.service';
-import { UserRepository } from '../infrastructure/user.repository';
-import { Either } from '../../core/domain/either';
-import { DataError } from '../../core/domain/data-error';
-import { UserRole } from '../domain/user';
-import { makeUser } from '../../test/user.fixture';
+import { UsersService } from '../users.service';
+import { UserRepository } from '../../infrastructure/user.repository';
+import { Either } from '../../../core/domain/either';
+import { DataError } from '../../../core/domain/data-error';
+import { UserRole } from '../../domain/user';
+import { makeUser } from '../../../test/user.fixture';
 
 const mockUserRepository = () => ({
   findAll: jest.fn(),

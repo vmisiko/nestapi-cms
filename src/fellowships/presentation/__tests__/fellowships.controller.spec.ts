@@ -7,12 +7,12 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import * as request from 'supertest';
-import { FellowshipsController } from './fellowships.controller';
-import { FellowshipsService } from '../application/fellowships.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { UserRole } from '../../users/domain/user';
-import { makeFellowship } from '../../test/fixtures';
+import { FellowshipsController } from '../fellowships.controller';
+import { FellowshipsService } from '../../application/fellowships.service';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { UserRole } from '../../../users/domain/user';
+import { makeFellowship } from '../../../test/fixtures';
 
 const mockFellowshipsService = () => ({
   findAll: jest.fn(),
