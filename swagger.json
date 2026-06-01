@@ -235,6 +235,66 @@
         ]
       }
     },
+    "/api/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the currently authenticated user profile",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/auth/me/password": {
+      "patch": {
+        "operationId": "AuthController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Password updated"
+          },
+          "401": {
+            "description": "Current password incorrect"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change own password",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/api/auth/logout": {
       "post": {
         "operationId": "AuthController_logout",
@@ -261,11 +321,27 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FellowshipZoneResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all fellowship zones",
         "tags": [
-          "FellowshipZones"
+          "Fellowship Zones"
         ]
       },
       "post": {
@@ -283,11 +359,24 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FellowshipZoneResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new fellowship zone (admin+)",
         "tags": [
-          "FellowshipZones"
+          "Fellowship Zones"
         ]
       }
     },
@@ -306,11 +395,24 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FellowshipZoneResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a fellowship zone by ID",
         "tags": [
-          "FellowshipZones"
+          "Fellowship Zones"
         ]
       },
       "patch": {
@@ -337,11 +439,24 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FellowshipZoneResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a fellowship zone (admin+)",
         "tags": [
-          "FellowshipZones"
+          "Fellowship Zones"
         ]
       },
       "delete": {
@@ -358,11 +473,17 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Fellowship zone deleted"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a fellowship zone (super_admin only)",
         "tags": [
-          "FellowshipZones"
+          "Fellowship Zones"
         ]
       }
     },
@@ -372,9 +493,25 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FellowshipResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all fellowships (with optional filters)",
         "tags": [
           "Fellowships"
         ]
@@ -394,9 +531,22 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FellowshipResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new fellowship (admin+)",
         "tags": [
           "Fellowships"
         ]
@@ -417,9 +567,22 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FellowshipResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a fellowship by slug",
         "tags": [
           "Fellowships"
         ]
@@ -440,9 +603,22 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FellowshipResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a fellowship by ID",
         "tags": [
           "Fellowships"
         ]
@@ -471,9 +647,22 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FellowshipResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a fellowship (admin+)",
         "tags": [
           "Fellowships"
         ]
@@ -492,9 +681,15 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Fellowship deleted"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a fellowship (super_admin only)",
         "tags": [
           "Fellowships"
         ]
@@ -506,9 +701,25 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DepartmentResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all departments",
         "tags": [
           "Departments"
         ]
@@ -528,9 +739,22 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new department (admin+)",
         "tags": [
           "Departments"
         ]
@@ -551,9 +775,22 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a department by ID",
         "tags": [
           "Departments"
         ]
@@ -582,9 +819,22 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a department (admin+)",
         "tags": [
           "Departments"
         ]
@@ -603,9 +853,15 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Department deleted"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a department (super_admin only)",
         "tags": [
           "Departments"
         ]
@@ -617,9 +873,15 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "{ data: MemberResponseDto[], total: number }"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List members with optional filters and pagination",
         "tags": [
           "Members"
         ]
@@ -639,9 +901,22 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new member",
         "tags": [
           "Members"
         ]
@@ -662,9 +937,25 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Member not found"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a member by ID",
         "tags": [
           "Members"
         ]
@@ -693,9 +984,22 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a member",
         "tags": [
           "Members"
         ]
@@ -717,6 +1021,12 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a member",
         "tags": [
           "Members"
         ]
@@ -740,6 +1050,12 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List a member's assigned departments",
         "tags": [
           "Members"
         ]
@@ -771,6 +1087,12 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Assign a member to a department",
         "tags": [
           "Members"
         ]
@@ -800,6 +1122,12 @@
             "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a member from a department",
         "tags": [
           "Members"
         ]
@@ -811,9 +1139,25 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all attendance sessions",
         "tags": [
           "Attendance"
         ]
@@ -833,9 +1177,22 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new attendance session (admin+)",
         "tags": [
           "Attendance"
         ]
@@ -856,9 +1213,22 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get an attendance session by ID",
         "tags": [
           "Attendance"
         ]
@@ -887,9 +1257,22 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an attendance session (admin+)",
         "tags": [
           "Attendance"
         ]
@@ -908,9 +1291,15 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Session deleted"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an attendance session (super_admin only)",
         "tags": [
           "Attendance"
         ]
@@ -931,9 +1320,25 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttendanceRecordResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all attendance records for a session",
         "tags": [
           "Attendance"
         ]
@@ -955,9 +1360,22 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceRecordResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Record attendance for a member (admin+)",
         "tags": [
           "Attendance"
         ]
@@ -978,9 +1396,25 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttendanceRecordResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all attendance records for a member",
         "tags": [
           "Attendance"
         ]
@@ -1011,9 +1445,22 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceRecordResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an attendance record (admin+)",
         "tags": [
           "Attendance"
         ]
@@ -1032,9 +1479,15 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Attendance record deleted"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an attendance record (admin+)",
         "tags": [
           "Attendance"
         ]
@@ -1046,9 +1499,25 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MessageResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all messages",
         "tags": [
           "Messaging"
         ]
@@ -1068,9 +1537,22 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new message (admin+)",
         "tags": [
           "Messaging"
         ]
@@ -1091,9 +1573,22 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a message by ID",
         "tags": [
           "Messaging"
         ]
@@ -1122,9 +1617,22 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a message (admin+)",
         "tags": [
           "Messaging"
         ]
@@ -1143,9 +1651,15 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Message deleted"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a message (super_admin only)",
         "tags": [
           "Messaging"
         ]
@@ -1166,9 +1680,22 @@
         ],
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendResultDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Dispatch a message to its target group via SMS (admin+)",
         "tags": [
           "Messaging"
         ]
@@ -1189,9 +1716,25 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeliveryResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List individual SMS delivery records for a message",
         "tags": [
           "Messaging"
         ]
@@ -1212,9 +1755,22 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryStatsResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get aggregated delivery stats for a message",
         "tags": [
           "Messaging"
         ]
@@ -1236,9 +1792,10 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "DLR received"
           }
         },
+        "summary": "Uwazii DLR delivery callback (public)",
         "tags": [
           "Messaging"
         ]
@@ -1250,11 +1807,27 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all inventory categories",
         "tags": [
-          "InventoryCategories"
+          "Inventory — Categories"
         ]
       },
       "post": {
@@ -1272,11 +1845,24 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new inventory category (admin+)",
         "tags": [
-          "InventoryCategories"
+          "Inventory — Categories"
         ]
       }
     },
@@ -1295,11 +1881,24 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get an inventory category by ID",
         "tags": [
-          "InventoryCategories"
+          "Inventory — Categories"
         ]
       },
       "patch": {
@@ -1326,11 +1925,24 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an inventory category (admin+)",
         "tags": [
-          "InventoryCategories"
+          "Inventory — Categories"
         ]
       },
       "delete": {
@@ -1347,11 +1959,17 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Category deleted"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an inventory category (super_admin only)",
         "tags": [
-          "InventoryCategories"
+          "Inventory — Categories"
         ]
       }
     },
@@ -1361,11 +1979,27 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ItemResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all inventory items",
         "tags": [
-          "InventoryItems"
+          "Inventory — Items"
         ]
       },
       "post": {
@@ -1383,11 +2017,24 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new inventory item (admin+)",
         "tags": [
-          "InventoryItems"
+          "Inventory — Items"
         ]
       }
     },
@@ -1406,11 +2053,24 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get an inventory item by ID",
         "tags": [
-          "InventoryItems"
+          "Inventory — Items"
         ]
       },
       "patch": {
@@ -1437,11 +2097,24 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an inventory item (admin+)",
         "tags": [
-          "InventoryItems"
+          "Inventory — Items"
         ]
       },
       "delete": {
@@ -1458,11 +2131,17 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Item deleted"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an inventory item (super_admin only)",
         "tags": [
-          "InventoryItems"
+          "Inventory — Items"
         ]
       }
     },
@@ -1491,11 +2170,24 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Adjust stock quantity for an inventory item (admin+)",
         "tags": [
-          "InventoryItems"
+          "Inventory — Items"
         ]
       }
     },
@@ -1505,11 +2197,27 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DamageReportResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all damage reports",
         "tags": [
-          "DamageReports"
+          "Inventory — Damage Reports"
         ]
       },
       "post": {
@@ -1527,11 +2235,24 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DamageReportResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new damage report (admin+)",
         "tags": [
-          "DamageReports"
+          "Inventory — Damage Reports"
         ]
       }
     },
@@ -1550,11 +2271,24 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DamageReportResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a damage report by ID",
         "tags": [
-          "DamageReports"
+          "Inventory — Damage Reports"
         ]
       },
       "patch": {
@@ -1581,11 +2315,24 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DamageReportResponseDto"
+                }
+              }
+            }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a damage report (admin+)",
         "tags": [
-          "DamageReports"
+          "Inventory — Damage Reports"
         ]
       },
       "delete": {
@@ -1602,11 +2349,44 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Damage report deleted"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a damage report (super_admin only)",
         "tags": [
-          "DamageReports"
+          "Inventory — Damage Reports"
+        ]
+      }
+    },
+    "/api/dashboard/stats": {
+      "get": {
+        "operationId": "DashboardController_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardStatsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Aggregate KPI stats for the admin dashboard",
+        "tags": [
+          "Dashboard"
         ]
       }
     }
@@ -1737,6 +2517,48 @@
           "password"
         ]
       },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "description": "Current password"
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "New password (min 8 characters)"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "FellowshipZoneResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "CreateFellowshipZoneDto": {
         "type": "object",
         "properties": {}
@@ -1744,6 +2566,73 @@
       "UpdateFellowshipZoneDto": {
         "type": "object",
         "properties": {}
+      },
+      "FellowshipResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "zoneId": {
+            "type": "string"
+          },
+          "leaderId": {
+            "type": "object",
+            "nullable": true
+          },
+          "meetingDay": {
+            "type": "string"
+          },
+          "meetingTime": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "memberCount": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "zoneId",
+          "leaderId",
+          "meetingDay",
+          "meetingTime",
+          "location",
+          "status",
+          "description",
+          "memberCount",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "CreateFellowshipDto": {
         "type": "object",
@@ -1753,6 +2642,53 @@
         "type": "object",
         "properties": {}
       },
+      "DepartmentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "headId": {
+            "type": "object",
+            "nullable": true
+          },
+          "memberTarget": {
+            "type": "number"
+          },
+          "annualBudget": {
+            "type": "number"
+          },
+          "budgetSpent": {
+            "type": "number"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "headId",
+          "memberTarget",
+          "annualBudget",
+          "budgetSpent",
+          "description",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "CreateDepartmentDto": {
         "type": "object",
         "properties": {}
@@ -1760,6 +2696,92 @@
       "UpdateDepartmentDto": {
         "type": "object",
         "properties": {}
+      },
+      "MemberResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "initials": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "object",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "guest",
+              "member",
+              "leader"
+            ]
+          },
+          "fellowshipId": {
+            "type": "object",
+            "nullable": true
+          },
+          "memberType": {
+            "type": "string",
+            "enum": [
+              "adult",
+              "child"
+            ]
+          },
+          "activityStatus": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          },
+          "joinedAt": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "firstName",
+          "lastName",
+          "name",
+          "initials",
+          "phone",
+          "email",
+          "status",
+          "fellowshipId",
+          "memberType",
+          "activityStatus",
+          "joinedAt",
+          "avatarUrl",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "CreateMemberDto": {
         "type": "object",
@@ -1769,6 +2791,50 @@
         "type": "object",
         "properties": {}
       },
+      "SessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "sessionType": {
+            "type": "string"
+          },
+          "sessionDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "fellowshipId": {
+            "type": "object",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "sessionType",
+          "sessionDate",
+          "fellowshipId",
+          "notes",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "CreateSessionDto": {
         "type": "object",
         "properties": {}
@@ -1776,6 +2842,49 @@
       "UpdateSessionDto": {
         "type": "object",
         "properties": {}
+      },
+      "AttendanceRecordResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "memberId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "checkedInAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "sessionId",
+          "memberId",
+          "status",
+          "checkedInAt",
+          "notes",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "RecordAttendanceDto": {
         "type": "object",
@@ -1785,6 +2894,66 @@
         "type": "object",
         "properties": {}
       },
+      "MessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "targetGroup": {
+            "type": "string"
+          },
+          "targetId": {
+            "type": "object",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "scheduledAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "sentAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "body",
+          "type",
+          "targetGroup",
+          "targetId",
+          "status",
+          "scheduledAt",
+          "sentAt",
+          "createdBy",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "CreateMessageDto": {
         "type": "object",
         "properties": {}
@@ -1793,9 +2962,158 @@
         "type": "object",
         "properties": {}
       },
+      "SendResultDto": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string"
+          },
+          "totalRecipients": {
+            "type": "number"
+          },
+          "sent": {
+            "type": "number"
+          },
+          "failed": {
+            "type": "number"
+          },
+          "skipped": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "messageId",
+          "totalRecipients",
+          "sent",
+          "failed",
+          "skipped"
+        ]
+      },
+      "DeliveryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "messageId": {
+            "type": "string"
+          },
+          "memberId": {
+            "type": "string"
+          },
+          "memberName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "uwaziRef": {
+            "type": "object",
+            "nullable": true
+          },
+          "failureReason": {
+            "type": "object",
+            "nullable": true
+          },
+          "sentAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "deliveredAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "messageId",
+          "memberId",
+          "memberName",
+          "phone",
+          "text",
+          "status",
+          "uwaziRef",
+          "failureReason",
+          "sentAt",
+          "deliveredAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "DeliveryStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "pending": {
+            "type": "number"
+          },
+          "sent": {
+            "type": "number"
+          },
+          "delivered": {
+            "type": "number"
+          },
+          "failed": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total",
+          "pending",
+          "sent",
+          "delivered",
+          "failed"
+        ]
+      },
       "UwaziiDlrDto": {
         "type": "object",
         "properties": {}
+      },
+      "CategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "CreateCategoryDto": {
         "type": "object",
@@ -1804,6 +3122,57 @@
       "UpdateCategoryDto": {
         "type": "object",
         "properties": {}
+      },
+      "ItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "minStockLevel": {
+            "type": "number"
+          },
+          "location": {
+            "type": "object",
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "categoryId",
+          "quantity",
+          "unit",
+          "minStockLevel",
+          "location",
+          "description",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "CreateItemDto": {
         "type": "object",
@@ -1817,6 +3186,57 @@
         "type": "object",
         "properties": {}
       },
+      "DamageReportResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "quantityDamaged": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          },
+          "reportedBy": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "resolvedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "itemId",
+          "quantityDamaged",
+          "description",
+          "reportedBy",
+          "status",
+          "resolvedAt",
+          "notes",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "CreateDamageReportDto": {
         "type": "object",
         "properties": {}
@@ -1824,6 +3244,235 @@
       "UpdateDamageReportDto": {
         "type": "object",
         "properties": {}
+      },
+      "MemberStatusBreakdown": {
+        "type": "object",
+        "properties": {
+          "guest": {
+            "type": "number"
+          },
+          "member": {
+            "type": "number"
+          },
+          "leader": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "guest",
+          "member",
+          "leader"
+        ]
+      },
+      "MemberTypeBreakdown": {
+        "type": "object",
+        "properties": {
+          "adult": {
+            "type": "number"
+          },
+          "child": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "adult",
+          "child"
+        ]
+      },
+      "MemberStats": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "active": {
+            "type": "number"
+          },
+          "inactive": {
+            "type": "number"
+          },
+          "byStatus": {
+            "$ref": "#/components/schemas/MemberStatusBreakdown"
+          },
+          "byType": {
+            "$ref": "#/components/schemas/MemberTypeBreakdown"
+          }
+        },
+        "required": [
+          "total",
+          "active",
+          "inactive",
+          "byStatus",
+          "byType"
+        ]
+      },
+      "FellowshipStats": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "active": {
+            "type": "number"
+          },
+          "inactive": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total",
+          "active",
+          "inactive"
+        ]
+      },
+      "DepartmentStats": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total"
+        ]
+      },
+      "LastSessionStats": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "sessionDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "totalRecorded": {
+            "type": "number"
+          },
+          "present": {
+            "type": "number"
+          },
+          "absent": {
+            "type": "number"
+          },
+          "excused": {
+            "type": "number"
+          },
+          "attendanceRate": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "sessionDate",
+          "totalRecorded",
+          "present",
+          "absent",
+          "excused",
+          "attendanceRate"
+        ]
+      },
+      "AttendanceStats": {
+        "type": "object",
+        "properties": {
+          "totalSessions": {
+            "type": "number"
+          },
+          "lastSession": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LastSessionStats"
+              }
+            ]
+          }
+        },
+        "required": [
+          "totalSessions",
+          "lastSession"
+        ]
+      },
+      "MessagingStats": {
+        "type": "object",
+        "properties": {
+          "totalMessages": {
+            "type": "number"
+          },
+          "sent": {
+            "type": "number"
+          },
+          "drafts": {
+            "type": "number"
+          },
+          "totalDeliveries": {
+            "type": "number"
+          },
+          "delivered": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "totalMessages",
+          "sent",
+          "drafts",
+          "totalDeliveries",
+          "delivered"
+        ]
+      },
+      "InventoryStats": {
+        "type": "object",
+        "properties": {
+          "totalItems": {
+            "type": "number"
+          },
+          "lowStockItems": {
+            "type": "number"
+          },
+          "pendingDamageReports": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "totalItems",
+          "lowStockItems",
+          "pendingDamageReports"
+        ]
+      },
+      "DashboardStatsDto": {
+        "type": "object",
+        "properties": {
+          "members": {
+            "$ref": "#/components/schemas/MemberStats"
+          },
+          "fellowships": {
+            "$ref": "#/components/schemas/FellowshipStats"
+          },
+          "departments": {
+            "$ref": "#/components/schemas/DepartmentStats"
+          },
+          "attendance": {
+            "$ref": "#/components/schemas/AttendanceStats"
+          },
+          "messaging": {
+            "$ref": "#/components/schemas/MessagingStats"
+          },
+          "inventory": {
+            "$ref": "#/components/schemas/InventoryStats"
+          }
+        },
+        "required": [
+          "members",
+          "fellowships",
+          "departments",
+          "attendance",
+          "messaging",
+          "inventory"
+        ]
       }
     }
   }
