@@ -2,6 +2,9 @@ import { Test } from '@nestjs/testing';
 import { HttpException } from '@nestjs/common';
 import { MessagingService } from '../messaging.service';
 import { MessageRepository } from '../../infrastructure/message.repository';
+import { MessageDeliveryRepository } from '../../infrastructure/message-delivery.repository';
+import { UwaziiProvider } from '../../infrastructure/uwazii.provider';
+import { TargetGroupResolverService } from '../target-group-resolver.service';
 import { Either } from '../../../core/domain/either';
 import { DataError } from '../../../core/domain/data-error';
 import {
@@ -9,6 +12,7 @@ import {
   MessageTargetGroup,
   MessageType,
 } from '../../domain/message';
+import { DeliveryStatus } from '../../domain/message-delivery';
 
 const mockRepo = {
   findAll: jest.fn(),
@@ -17,6 +21,23 @@ const mockRepo = {
   update: jest.fn(),
   markSent: jest.fn(),
   delete: jest.fn(),
+};
+
+const mockDeliveryRepo = {
+  createMany: jest.fn(),
+  findByMessage: jest.fn(),
+  findById: jest.fn(),
+  findByUwaziRef: jest.fn(),
+  updateStatus: jest.fn(),
+  getStats: jest.fn(),
+};
+
+const mockUwazii = {
+  sendBatch: jest.fn(),
+};
+
+const mockResolver = {
+  resolve: jest.fn(),
 };
 
 const mockMessage = {
@@ -34,6 +55,22 @@ const mockMessage = {
   updatedAt: new Date(),
 };
 
+const mockDelivery = {
+  id: 'del-uuid',
+  messageId: 'msg-uuid',
+  memberId: 'mem-uuid',
+  memberName: 'John Doe',
+  phone: '254700000001',
+  text: 'Body text',
+  status: DeliveryStatus.PENDING,
+  uwaziRef: null,
+  failureReason: null,
+  sentAt: null,
+  deliveredAt: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
 describe('MessagingService', () => {
   let service: MessagingService;
 
@@ -43,6 +80,9 @@ describe('MessagingService', () => {
       providers: [
         MessagingService,
         { provide: MessageRepository, useValue: mockRepo },
+        { provide: MessageDeliveryRepository, useValue: mockDeliveryRepo },
+        { provide: UwaziiProvider, useValue: mockUwazii },
+        { provide: TargetGroupResolverService, useValue: mockResolver },
       ],
     }).compile();
     service = module.get(MessagingService);
@@ -100,21 +140,98 @@ describe('MessagingService', () => {
   });
 
   describe('send', () => {
-    it('sends a draft message without error', async () => {
+    it('resolves recipients, dispatches to Uwazii, returns summary', async () => {
       mockRepo.findById.mockResolvedValue(Either.right(mockMessage));
+      mockResolver.resolve.mockResolvedValue([
+        { memberId: 'mem-uuid', memberName: 'John Doe', phone: '254700000001' },
+      ]);
+      mockDeliveryRepo.createMany.mockResolvedValue(
+        Either.right([mockDelivery]),
+      );
+      mockUwazii.sendBatch.mockResolvedValue([
+        {
+          to: '254700000001',
+          ref: 'uwazii-ref-1',
+          accepted: true,
+          reason: null,
+        },
+      ]);
+      mockDeliveryRepo.updateStatus.mockResolvedValue(
+        Either.right({ ...mockDelivery, status: DeliveryStatus.SENT }),
+      );
       mockRepo.markSent.mockResolvedValue(
         Either.right({ ...mockMessage, status: MessageStatus.SENT }),
       );
-      await expect(service.send('msg-uuid')).resolves.toBeUndefined();
+
+      const result = await service.send('msg-uuid');
+      expect(result.sent).toBe(1);
+      expect(result.failed).toBe(0);
+      expect(result.totalRecipients).toBe(1);
     });
 
-    it('throws on already sent message', async () => {
+    it('throws 422 when already sent', async () => {
       mockRepo.findById.mockResolvedValue(
         Either.right({ ...mockMessage, status: MessageStatus.SENT }),
       );
       await expect(service.send('msg-uuid')).rejects.toBeInstanceOf(
         HttpException,
       );
+    });
+
+    it('throws 422 when no recipients found', async () => {
+      mockRepo.findById.mockResolvedValue(Either.right(mockMessage));
+      mockResolver.resolve.mockResolvedValue([]);
+      await expect(service.send('msg-uuid')).rejects.toBeInstanceOf(
+        HttpException,
+      );
+    });
+  });
+
+  describe('handleDlr', () => {
+    it('updates delivery status to delivered', async () => {
+      mockDeliveryRepo.findByUwaziRef.mockResolvedValue(
+        Either.right(mockDelivery),
+      );
+      mockDeliveryRepo.updateStatus.mockResolvedValue(
+        Either.right({ ...mockDelivery, status: DeliveryStatus.DELIVERED }),
+      );
+      await expect(
+        service.handleDlr('uwazii-ref-1', 'delivered'),
+      ).resolves.toBeUndefined();
+      expect(mockDeliveryRepo.updateStatus).toHaveBeenCalled();
+    });
+
+    it('silently ignores unknown ref', async () => {
+      mockDeliveryRepo.findByUwaziRef.mockResolvedValue(Either.right(null));
+      await expect(
+        service.handleDlr('unknown-ref', 'delivered'),
+      ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('getDeliveries', () => {
+    it('returns deliveries for a message', async () => {
+      mockDeliveryRepo.findByMessage.mockResolvedValue(
+        Either.right([mockDelivery]),
+      );
+      const result = await service.getDeliveries('msg-uuid');
+      expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('getDeliveryStats', () => {
+    it('returns stats', async () => {
+      mockDeliveryRepo.getStats.mockResolvedValue(
+        Either.right({
+          total: 1,
+          pending: 0,
+          sent: 1,
+          delivered: 0,
+          failed: 0,
+        }),
+      );
+      const result = await service.getDeliveryStats('msg-uuid');
+      expect(result.total).toBe(1);
     });
   });
 

@@ -10,6 +10,7 @@ import {
   MessageTargetGroup,
   MessageType,
 } from '../../domain/message';
+import { DeliveryStatus } from '../../domain/message-delivery';
 
 const MSG_ID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 
@@ -28,6 +29,30 @@ const mockMessage = {
   updatedAt: new Date(),
 };
 
+const mockSendResult = {
+  messageId: MSG_ID,
+  totalRecipients: 10,
+  sent: 9,
+  failed: 1,
+  skipped: 0,
+};
+
+const mockDelivery = {
+  id: 'del-uuid',
+  messageId: MSG_ID,
+  memberId: 'mem-uuid',
+  memberName: 'John Doe',
+  phone: '254700000001',
+  text: 'Body text',
+  status: DeliveryStatus.SENT,
+  uwaziRef: 'ref-123',
+  failureReason: null,
+  sentAt: new Date(),
+  deliveredAt: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
 const mockService = {
   findAll: jest.fn(),
   findById: jest.fn(),
@@ -35,6 +60,9 @@ const mockService = {
   update: jest.fn(),
   send: jest.fn(),
   delete: jest.fn(),
+  getDeliveries: jest.fn(),
+  getDeliveryStats: jest.fn(),
+  handleDlr: jest.fn(),
 };
 
 describe('MessagingController', () => {
@@ -108,11 +136,14 @@ describe('MessagingController', () => {
     expect(res.body.title).toBe('Updated');
   });
 
-  it('POST /messaging/:id/send → 204', async () => {
-    mockService.send.mockResolvedValue(undefined);
-    await request(app.getHttpServer())
+  it('POST /messaging/:id/send → 201 with send result', async () => {
+    mockService.send.mockResolvedValue(mockSendResult);
+    const res = await request(app.getHttpServer())
       .post(`/messaging/${MSG_ID}/send`)
-      .expect(204);
+      .expect(201);
+    expect(res.body.totalRecipients).toBe(10);
+    expect(res.body.sent).toBe(9);
+    expect(res.body.failed).toBe(1);
   });
 
   it('DELETE /messaging/:id → 204', async () => {
@@ -120,5 +151,62 @@ describe('MessagingController', () => {
     await request(app.getHttpServer())
       .delete(`/messaging/${MSG_ID}`)
       .expect(204);
+  });
+
+  it('GET /messaging/:id/deliveries → 200 with delivery list', async () => {
+    mockService.getDeliveries.mockResolvedValue([mockDelivery]);
+    const res = await request(app.getHttpServer())
+      .get(`/messaging/${MSG_ID}/deliveries`)
+      .expect(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].status).toBe(DeliveryStatus.SENT);
+  });
+
+  it('GET /messaging/:id/deliveries/stats → 200 with stats', async () => {
+    mockService.getDeliveryStats.mockResolvedValue({
+      total: 10,
+      pending: 0,
+      sent: 8,
+      delivered: 1,
+      failed: 1,
+    });
+    const res = await request(app.getHttpServer())
+      .get(`/messaging/${MSG_ID}/deliveries/stats`)
+      .expect(200);
+    expect(res.body.total).toBe(10);
+    expect(res.body.sent).toBe(8);
+  });
+
+  it('POST /messaging/dlr → 200 acknowledged', async () => {
+    mockService.handleDlr.mockResolvedValue(undefined);
+    const res = await request(app.getHttpServer())
+      .post('/messaging/dlr')
+      .send({
+        id: 'ref-123',
+        to: '254700000001',
+        status: 'delivered',
+        delivered_at: '2026-06-01T12:00:00Z',
+      })
+      .expect(200);
+    expect(res.body.received).toBe(true);
+    expect(mockService.handleDlr).toHaveBeenCalledWith(
+      'ref-123',
+      'delivered',
+      expect.any(Date),
+    );
+  });
+
+  it('POST /messaging/dlr → 200 on failed status', async () => {
+    mockService.handleDlr.mockResolvedValue(undefined);
+    const res = await request(app.getHttpServer())
+      .post('/messaging/dlr')
+      .send({ id: 'ref-456', to: '254700000002', status: 'failed' })
+      .expect(200);
+    expect(res.body.received).toBe(true);
+    expect(mockService.handleDlr).toHaveBeenCalledWith(
+      'ref-456',
+      'failed',
+      undefined,
+    );
   });
 });
