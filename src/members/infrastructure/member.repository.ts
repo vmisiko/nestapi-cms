@@ -73,8 +73,8 @@ export class MemberRepository implements IMemberRepository {
 
       const total = await qb.getCount();
       const entities = await qb
-        .skip((page - 1) * limit)
-        .take(limit)
+        .offset((page - 1) * limit)
+        .limit(limit)
         .getMany();
       return Either.right({ data: entities.map(this.toMember), total });
     } catch (err) {
