@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsOptional,
@@ -7,7 +8,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { MemberStatus, MemberType, ActivityStatus } from '../../domain/member';
 
 export class MemberFiltersDto {
@@ -18,6 +19,11 @@ export class MemberFiltersDto {
   @IsOptional()
   @IsUUID()
   fellowshipId?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  hasFellowship?: boolean;
 
   @IsOptional()
   @IsUUID()

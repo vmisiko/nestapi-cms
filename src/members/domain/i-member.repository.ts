@@ -11,6 +11,7 @@ import type {
 export interface MemberFilters {
   status?: MemberStatus;
   fellowshipId?: string;
+  hasFellowship?: boolean;
   departmentId?: string;
   memberType?: MemberType;
   activityStatus?: ActivityStatus;

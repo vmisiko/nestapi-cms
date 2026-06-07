@@ -34,6 +34,10 @@ export class MemberRepository implements IMemberRepository {
         qb.andWhere('m.fellowship_id = :fellowshipId', {
           fellowshipId: filters.fellowshipId,
         });
+      if (filters?.hasFellowship === true)
+        qb.andWhere('m.fellowship_id IS NOT NULL');
+      if (filters?.hasFellowship === false)
+        qb.andWhere('m.fellowship_id IS NULL');
       if (filters?.memberType)
         qb.andWhere('m.member_type = :memberType', {
           memberType: filters.memberType,
