@@ -63,9 +63,12 @@ export class MemberRepository implements IMemberRepository {
         }
       }
       if (filters?.departmentId) {
-        qb.innerJoin('m.departments', 'dept', 'dept.id = :deptId', {
-          deptId: filters.departmentId,
-        });
+        qb.innerJoin(
+          'member_departments',
+          'md',
+          'md.member_id = m.id AND md.department_id = :deptId',
+          { deptId: filters.departmentId },
+        );
       }
 
       const [entities, total] = await qb
