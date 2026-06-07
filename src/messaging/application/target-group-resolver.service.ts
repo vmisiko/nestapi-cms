@@ -58,9 +58,12 @@ export class TargetGroupResolverService {
       case MessageTargetGroup.DEPARTMENT:
         if (!targetId) return [];
         return base
-          .innerJoin('m.departments', 'dept', 'dept.id = :deptId', {
-            deptId: targetId,
-          })
+          .innerJoin(
+            'member_departments',
+            'md',
+            'md.member_id = m.id AND md.department_id = :deptId',
+            { deptId: targetId },
+          )
           .getMany();
 
       case MessageTargetGroup.ZONE: {

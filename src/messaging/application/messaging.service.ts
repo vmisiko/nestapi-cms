@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MessageRepository } from '../infrastructure/message.repository';
 import { MessageDeliveryRepository } from '../infrastructure/message-delivery.repository';
-import { UwaziiProvider } from '../infrastructure/uwazii.provider';
+import { SmsProviderService } from '../infrastructure/sms-provider.service';
 import { TargetGroupResolverService } from './target-group-resolver.service';
 import { CreateMessageUseCase } from '../domain/usecases/create-message.usecase';
 import { GetMessagesUseCase } from '../domain/usecases/get-messages.usecase';
@@ -50,7 +50,7 @@ export class MessagingService {
   constructor(
     readonly repo: MessageRepository,
     readonly deliveryRepo: MessageDeliveryRepository,
-    private readonly uwazii: UwaziiProvider,
+    private readonly smsProvider: SmsProviderService,
     private readonly resolver: TargetGroupResolverService,
   ) {
     this.getAllUseCase = new GetMessagesUseCase(repo);
@@ -181,7 +181,7 @@ export class MessagingService {
       to: r.phone,
       text: message.body,
     }));
-    const uwaziResults = await this.uwazii.sendBatch(outbound);
+    const uwaziResults = await this.smsProvider.sendBatch(outbound);
 
     // 5. Update each delivery record in parallel
     const now = new Date();

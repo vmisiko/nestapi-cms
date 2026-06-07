@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type { ISmsProvider, OutboundSms, SmsResult } from '../domain/i-sms-provider';
 
 export interface UwaziiOutboundMessage {
   to: string;
@@ -33,7 +34,8 @@ interface UwaziiApiResponse {
 const UWAZII_BATCH_SIZE = 100;
 
 @Injectable()
-export class UwaziiProvider {
+export class UwaziiProvider implements ISmsProvider {
+  readonly name = 'UwaziiProvider';
   private readonly logger = new Logger(UwaziiProvider.name);
   private readonly baseUrl: string;
   private readonly accessToken: string;
@@ -56,8 +58,8 @@ export class UwaziiProvider {
    * Returns one result per input message in the same order.
    */
   async sendBatch(
-    messages: UwaziiOutboundMessage[],
-  ): Promise<UwaziiSendResult[]> {
+    messages: OutboundSms[],
+  ): Promise<SmsResult[]> {
     if (messages.length === 0) return [];
 
     const results: UwaziiSendResult[] = [];
