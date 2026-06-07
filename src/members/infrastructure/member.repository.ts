@@ -71,12 +71,14 @@ export class MemberRepository implements IMemberRepository {
         );
       }
 
-      const [entities, total] = await qb
+      const total = await qb.getCount();
+      const entities = await qb
         .skip((page - 1) * limit)
         .take(limit)
-        .getManyAndCount();
+        .getMany();
       return Either.right({ data: entities.map(this.toMember), total });
-    } catch {
+    } catch (err) {
+      console.error('[MemberRepository.findAll]', err);
       return Either.left(
         new DataError('NetworkError', 'Failed to fetch members'),
       );
