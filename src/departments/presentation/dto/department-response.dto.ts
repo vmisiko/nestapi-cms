@@ -24,6 +24,9 @@ export class DepartmentResponseDto {
   description: string | null;
 
   @ApiProperty()
+  memberCount: number;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()

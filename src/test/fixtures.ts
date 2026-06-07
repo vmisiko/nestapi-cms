@@ -52,6 +52,7 @@ export const makeDepartment = (
   annualBudget: 5000,
   budgetSpent: 0,
   description: null,
+  memberCount: 0,
   createdAt: DATE,
   updatedAt: DATE,
   ...overrides,

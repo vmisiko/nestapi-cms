@@ -20,8 +20,22 @@ export class DepartmentRepository implements IDepartmentRepository {
 
   async findAll(): Promise<Either<DataError, Department[]>> {
     try {
-      const entities = await this.orm.find({ order: { name: 'ASC' } });
-      return Either.right(entities.map(this.toDept));
+      type RawRow = { memberCount?: string | number };
+      const raw = await this.orm
+        .createQueryBuilder('d')
+        .leftJoin('member_departments', 'md', 'md.department_id = d.id')
+        .addSelect('COALESCE(COUNT(md.member_id), 0)::int', 'memberCount')
+        .groupBy('d.id')
+        .orderBy('d.name', 'ASC')
+        .getRawAndEntities();
+      return Either.right(
+        raw.entities.map((e, i) =>
+          this.toDept(
+            e,
+            Number((raw.raw[i] as RawRow | undefined)?.memberCount ?? 0),
+          ),
+        ),
+      );
     } catch {
       return Either.left(
         new DataError('NetworkError', 'Failed to fetch departments'),
@@ -31,10 +45,22 @@ export class DepartmentRepository implements IDepartmentRepository {
 
   async findById(id: string): Promise<Either<DataError, Department>> {
     try {
-      const entity = await this.orm.findOne({ where: { id } });
-      if (!entity)
+      type RawRow = { memberCount?: string | number };
+      const raw = await this.orm
+        .createQueryBuilder('d')
+        .leftJoin('member_departments', 'md', 'md.department_id = d.id')
+        .addSelect('COALESCE(COUNT(md.member_id), 0)::int', 'memberCount')
+        .where('d.id = :id', { id })
+        .groupBy('d.id')
+        .getRawAndEntities();
+      if (!raw.entities[0])
         return Either.left(DataError.notFound(`Department ${id} not found`));
-      return Either.right(this.toDept(entity));
+      return Either.right(
+        this.toDept(
+          raw.entities[0],
+          Number((raw.raw[0] as RawRow | undefined)?.memberCount ?? 0),
+        ),
+      );
     } catch {
       return Either.left(
         new DataError('NetworkError', 'Failed to fetch department'),
@@ -48,7 +74,7 @@ export class DepartmentRepository implements IDepartmentRepository {
     try {
       const entity = this.orm.create(data);
       const saved = await this.orm.save(entity);
-      return Either.right(this.toDept(saved));
+      return Either.right(this.toDept(saved, 0));
     } catch {
       return Either.left(
         new DataError('NetworkError', 'Failed to create department'),
@@ -83,7 +109,7 @@ export class DepartmentRepository implements IDepartmentRepository {
     }
   }
 
-  private toDept = (e: DepartmentEntity): Department => ({
+  private toDept = (e: DepartmentEntity, memberCount = 0): Department => ({
     id: e.id,
     name: e.name,
     headId: e.headId,
@@ -91,6 +117,7 @@ export class DepartmentRepository implements IDepartmentRepository {
     annualBudget: Number(e.annualBudget),
     budgetSpent: Number(e.budgetSpent),
     description: e.description,
+    memberCount,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
   });

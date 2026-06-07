@@ -6,6 +6,7 @@ export interface Department {
   annualBudget: number;
   budgetSpent: number;
   description: string | null;
+  memberCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
