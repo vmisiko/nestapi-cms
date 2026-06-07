@@ -3,7 +3,7 @@ import { HttpException } from '@nestjs/common';
 import { MessagingService } from '../messaging.service';
 import { MessageRepository } from '../../infrastructure/message.repository';
 import { MessageDeliveryRepository } from '../../infrastructure/message-delivery.repository';
-import { UwaziiProvider } from '../../infrastructure/uwazii.provider';
+import { SmsProviderService } from '../../infrastructure/sms-provider.service';
 import { TargetGroupResolverService } from '../target-group-resolver.service';
 import { Either } from '../../../core/domain/either';
 import { DataError } from '../../../core/domain/data-error';
@@ -81,7 +81,7 @@ describe('MessagingService', () => {
         MessagingService,
         { provide: MessageRepository, useValue: mockRepo },
         { provide: MessageDeliveryRepository, useValue: mockDeliveryRepo },
-        { provide: UwaziiProvider, useValue: mockUwazii },
+        { provide: SmsProviderService, useValue: mockUwazii },
         { provide: TargetGroupResolverService, useValue: mockResolver },
       ],
     }).compile();

@@ -229,9 +229,9 @@ describe('TargetGroupResolverService', () => {
       expect(result).toHaveLength(1);
       expect(result[0].memberId).toBe('mem-dept');
       expect(qb.innerJoin).toHaveBeenCalledWith(
-        'm.departments',
-        'dept',
-        'dept.id = :deptId',
+        'member_departments',
+        'md',
+        'md.member_id = m.id AND md.department_id = :deptId',
         { deptId: 'dept-uuid-1' },
       );
     });
