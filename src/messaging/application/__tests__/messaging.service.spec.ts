@@ -182,7 +182,10 @@ describe('MessagingService', () => {
       expect(result.sent).toBe(1);
       expect(result.failed).toBe(0);
       expect(result.skipped).toBe(0);
-      expect(mockRepo.markSent).toHaveBeenCalledWith('msg-uuid', expect.any(Date));
+      expect(mockRepo.markSent).toHaveBeenCalledWith(
+        'msg-uuid',
+        expect.any(Date),
+      );
       expect(mockDeliveryRepo.updateStatus).toHaveBeenCalledWith(
         mockDelivery.id,
         expect.objectContaining({ status: DeliveryStatus.SENT }),
@@ -209,10 +212,28 @@ describe('MessagingService', () => {
     });
 
     it('partial failure: counts sent and failed correctly, still marks message sent', async () => {
-      const recipient1 = { memberId: 'mem-1', memberName: 'Alice', phone: '254700000001' };
-      const recipient2 = { memberId: 'mem-2', memberName: 'Bob', phone: '254700000002' };
-      const delivery1 = { ...mockDelivery, id: 'del-1', memberId: 'mem-1', phone: '254700000001' };
-      const delivery2 = { ...mockDelivery, id: 'del-2', memberId: 'mem-2', phone: '254700000002' };
+      const recipient1 = {
+        memberId: 'mem-1',
+        memberName: 'Alice',
+        phone: '254700000001',
+      };
+      const recipient2 = {
+        memberId: 'mem-2',
+        memberName: 'Bob',
+        phone: '254700000002',
+      };
+      const delivery1 = {
+        ...mockDelivery,
+        id: 'del-1',
+        memberId: 'mem-1',
+        phone: '254700000001',
+      };
+      const delivery2 = {
+        ...mockDelivery,
+        id: 'del-2',
+        memberId: 'mem-2',
+        phone: '254700000002',
+      };
 
       mockRepo.findById.mockResolvedValue(Either.right(mockMessage));
       mockResolver.resolve.mockResolvedValue([recipient1, recipient2]);
@@ -221,9 +242,16 @@ describe('MessagingService', () => {
       );
       mockUwazii.sendBatch.mockResolvedValue([
         { to: '254700000001', ref: 'ref-1', accepted: true, reason: null },
-        { to: '254700000002', ref: null, accepted: false, reason: 'Invalid number' },
+        {
+          to: '254700000002',
+          ref: null,
+          accepted: false,
+          reason: 'Invalid number',
+        },
       ]);
-      mockDeliveryRepo.updateStatus.mockResolvedValue(Either.right(mockDelivery));
+      mockDeliveryRepo.updateStatus.mockResolvedValue(
+        Either.right(mockDelivery),
+      );
       mockRepo.markSent.mockResolvedValue(
         Either.right({ ...mockMessage, status: MessageStatus.SENT }),
       );
@@ -241,7 +269,9 @@ describe('MessagingService', () => {
       mockRepo.findById.mockResolvedValue(
         Either.left(DataError.notFound('Message not found')),
       );
-      await expect(service.send('bad-id')).rejects.toBeInstanceOf(HttpException);
+      await expect(service.send('bad-id')).rejects.toBeInstanceOf(
+        HttpException,
+      );
     });
   });
 

@@ -17,9 +17,7 @@ import { MemberStatus, MemberType } from '../../../members/domain/member';
  * Uses Object.assign so explicit `null` overrides are preserved
  * (unlike the `?? default` pattern that would swallow `null`).
  */
-function makeMemberEntity(
-  overrides: Partial<MemberEntity> = {},
-): MemberEntity {
+function makeMemberEntity(overrides: Partial<MemberEntity> = {}): MemberEntity {
   const defaults: Partial<MemberEntity> = {
     id: 'mem-uuid-1',
     firstName: 'John',
@@ -185,19 +183,25 @@ describe('TargetGroupResolverService', () => {
   describe('FELLOWSHIP group', () => {
     it('returns only members belonging to the specified fellowship', async () => {
       const members = [
-        makeMemberEntity({ id: 'mem-1', phone: '254712345678', fellowshipId: 'fellowship-1' }),
+        makeMemberEntity({
+          id: 'mem-1',
+          phone: '254712345678',
+          fellowshipId: 'fellowship-1',
+        }),
       ];
       const qb = makeQueryBuilderMock(members);
       memberOrm.createQueryBuilder.mockReturnValue(qb);
 
-      const result = await service.resolve(MessageTargetGroup.FELLOWSHIP, 'fellowship-1');
+      const result = await service.resolve(
+        MessageTargetGroup.FELLOWSHIP,
+        'fellowship-1',
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].memberId).toBe('mem-1');
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'm.fellowship_id = :id',
-        { id: 'fellowship-1' },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('m.fellowship_id = :id', {
+        id: 'fellowship-1',
+      });
     });
 
     it('returns empty array when targetId is null — getMany never called', async () => {
@@ -224,7 +228,10 @@ describe('TargetGroupResolverService', () => {
       const qb = makeQueryBuilderMock(members);
       memberOrm.createQueryBuilder.mockReturnValue(qb);
 
-      const result = await service.resolve(MessageTargetGroup.DEPARTMENT, 'dept-uuid-1');
+      const result = await service.resolve(
+        MessageTargetGroup.DEPARTMENT,
+        'dept-uuid-1',
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].memberId).toBe('mem-dept');
@@ -257,8 +264,16 @@ describe('TargetGroupResolverService', () => {
         makeFellowshipEntity({ id: 'fell-2', zoneId: 'zone-1' }),
       ]);
       const members = [
-        makeMemberEntity({ id: 'mem-zone-1', phone: '254700000001', fellowshipId: 'fell-1' }),
-        makeMemberEntity({ id: 'mem-zone-2', phone: '254700000002', fellowshipId: 'fell-2' }),
+        makeMemberEntity({
+          id: 'mem-zone-1',
+          phone: '254700000001',
+          fellowshipId: 'fell-1',
+        }),
+        makeMemberEntity({
+          id: 'mem-zone-2',
+          phone: '254700000002',
+          fellowshipId: 'fell-2',
+        }),
       ];
       const qb = makeQueryBuilderMock(members);
       memberOrm.createQueryBuilder.mockReturnValue(qb);
@@ -281,7 +296,10 @@ describe('TargetGroupResolverService', () => {
       const qb = makeQueryBuilderMock([]);
       memberOrm.createQueryBuilder.mockReturnValue(qb);
 
-      const result = await service.resolve(MessageTargetGroup.ZONE, 'zone-no-fellowships');
+      const result = await service.resolve(
+        MessageTargetGroup.ZONE,
+        'zone-no-fellowships',
+      );
 
       expect(result).toHaveLength(0);
       expect(qb.getMany).not.toHaveBeenCalled();
@@ -350,7 +368,11 @@ describe('TargetGroupResolverService', () => {
   describe('recipient mapping', () => {
     it('sets memberName to "firstName lastName"', async () => {
       const members = [
-        makeMemberEntity({ firstName: 'Jane', lastName: 'Smith', phone: '254700000001' }),
+        makeMemberEntity({
+          firstName: 'Jane',
+          lastName: 'Smith',
+          phone: '254700000001',
+        }),
       ];
       const qb = makeQueryBuilderMock(members);
       memberOrm.createQueryBuilder.mockReturnValue(qb);

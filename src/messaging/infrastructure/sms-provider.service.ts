@@ -1,5 +1,9 @@
 import { Injectable, Logger, Optional, Inject } from '@nestjs/common';
-import type { ISmsProvider, OutboundSms, SmsResult } from '../domain/i-sms-provider';
+import type {
+  ISmsProvider,
+  OutboundSms,
+  SmsResult,
+} from '../domain/i-sms-provider';
 
 export const PRIMARY_SMS_PROVIDER = 'PRIMARY_SMS_PROVIDER';
 export const FALLBACK_SMS_PROVIDER = 'FALLBACK_SMS_PROVIDER';
@@ -11,7 +15,9 @@ export class SmsProviderService implements ISmsProvider {
 
   constructor(
     @Inject(PRIMARY_SMS_PROVIDER) private readonly primary: ISmsProvider,
-    @Optional() @Inject(FALLBACK_SMS_PROVIDER) private readonly fallback?: ISmsProvider,
+    @Optional()
+    @Inject(FALLBACK_SMS_PROVIDER)
+    private readonly fallback?: ISmsProvider,
   ) {}
 
   async sendBatch(messages: OutboundSms[]): Promise<SmsResult[]> {
