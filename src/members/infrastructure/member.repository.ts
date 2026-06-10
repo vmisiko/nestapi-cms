@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { parse } from 'csv-parse/sync';
 import { MemberEntity } from './member.entity';
+import { FellowshipEntity } from '../../fellowships/infrastructure/fellowship.entity';
 import type {
   IMemberRepository,
   MemberFilters,
@@ -9,17 +11,63 @@ import type {
   UpdateMemberData,
   BulkImportRow,
   BulkImportResult,
+  BulkPreviewRow,
+  BulkPreviewResponse,
 } from '../domain/i-member.repository';
 import type { Member, AssignedDepartment } from '../domain/member';
 import { AgeGroup, ChurchRole, Gender } from '../../core/domain/enums';
 import { Either } from '../../core/domain/either';
 import { DataError } from '../../core/domain/data-error';
 
+// ---------------------------------------------------------------------------
+// Fellowship keyword matching — mirrors frontend lib/bulk-upload-utils.ts
+// ---------------------------------------------------------------------------
+const FELLOWSHIP_KEYWORDS: Array<{ keywords: string[]; name: string }> = [
+  { keywords: ['kawangware'], name: 'Kawangware Fellowship' },
+  { keywords: ['utawala', 'mihango'], name: 'Utawala Fellowship' },
+  { keywords: ['embakasi'], name: 'Embakasi Fellowship' },
+  { keywords: ['kasarani'], name: 'Kasarani Fellowship' },
+  { keywords: ['roysambu'], name: 'Roysambu Fellowship' },
+  { keywords: ['ngong'], name: 'Ngong Fellowship' },
+  { keywords: ['thika'], name: 'Thika Fellowship' },
+  { keywords: ['ruaka', 'banana'], name: 'Ruaka Fellowship' },
+  { keywords: ["ng'ando", 'ngando', 'ng ando'], name: "Ng'ando Fellowship" },
+  {
+    keywords: ["lang'ata", 'langata', 'lang ata'],
+    name: "Lang'ata Fellowship",
+  },
+];
+
+// Use word-boundary patterns for short keywords (avoids matching 'uk' in 'Mukuru', etc.)
+const INTERNATIONAL_AREA_PATTERNS: RegExp[] = [
+  /\btanzania\b/,
+  /\buganda\b/,
+  /\brwanda\b/,
+  /\bdubai\b/,
+  /\buk\b/,
+  /\busa\b/,
+  /\bcanada\b/,
+  /\baustralia\b/,
+  /\bgermany\b/,
+  /\bnetherlands\b/,
+  /\bbahrain\b/,
+  /\bqatar\b/,
+  /\bkuwait\b/,
+  /\boman\b/,
+  /\bsaudi\b/,
+  /\blebanon\b/,
+  /\barusha\b/,
+  /\bkampala\b/,
+  /dar es salaam/,
+];
+
 @Injectable()
 export class MemberRepository implements IMemberRepository {
   constructor(
     @InjectRepository(MemberEntity)
     private readonly orm: Repository<MemberEntity>,
+    @InjectRepository(FellowshipEntity)
+    private readonly fellowshipOrm: Repository<FellowshipEntity>,
   ) {}
 
   async findAll(
@@ -374,6 +422,217 @@ export class MemberRepository implements IMemberRepository {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Preview bulk import — parse CSV, normalize, match fellowship, dedup
+  // No data is saved; returns structured preview rows.
+  // ---------------------------------------------------------------------------
+  async previewBulkImport(
+    csvBuffer: Buffer,
+  ): Promise<Either<DataError, BulkPreviewResponse>> {
+    try {
+      // 1. Parse CSV
+      let rawRows: Record<string, string>[];
+      try {
+        rawRows = parse(csvBuffer, {
+          columns: true,
+          skip_empty_lines: true,
+          trim: true,
+          relax_quotes: true,
+          relax_column_count: true,
+        });
+      } catch (parseErr) {
+        const msg =
+          parseErr instanceof Error ? parseErr.message : String(parseErr);
+        return Either.left(DataError.validation(`CSV parse error: ${msg}`));
+      }
+
+      // 2. Build fellowship name→{id,name} map from DB
+      const fellowshipEntities = await this.fellowshipOrm.find({
+        select: ['id', 'name'],
+      });
+      // Map normalized name (lowercase) → { id, name }
+      const dbFellowshipMap = new Map<string, { id: string; name: string }>();
+      for (const f of fellowshipEntities) {
+        dbFellowshipMap.set(f.name.toLowerCase(), { id: f.id, name: f.name });
+      }
+
+      // 3. First pass: parse all rows into intermediate objects
+      interface IntermediateRow {
+        rowIndex: number;
+        fullName: string;
+        phone: string;
+        normalizedPhone: string | null;
+        email: string;
+        gender: string;
+        ageGroup: string;
+        area: string;
+        churchRole: string;
+        fellowshipId: string | null;
+        fellowshipName: string | null;
+        isOnline: boolean;
+        isInternational: boolean;
+        issues: string[];
+        status: 'ready' | 'duplicate_in_file' | 'duplicate_in_db' | 'invalid';
+      }
+
+      const intermediate: IntermediateRow[] = rawRows.map((raw, i) => {
+        const rowIndex = i + 1;
+        const fullName = (raw['Full Name'] ?? raw['fullName'] ?? '').trim();
+        const phone = (raw['Mobile Phone Number'] ?? raw['phone'] ?? '').trim();
+        const email = (raw['Email Address'] ?? raw['email'] ?? '').trim();
+        const gender = this.mapGender(raw['Gender'] ?? raw['gender'] ?? '');
+        const ageGroup = this.mapAgeGroup(
+          raw['Age Group'] ?? raw['ageGroup'] ?? '',
+        );
+        const area = (
+          raw['Area of Residence'] ??
+          raw['areaOfResidence'] ??
+          ''
+        ).trim();
+        const churchRole = this.mapChurchRole(
+          raw['Are you'] ?? raw['churchRole'] ?? '',
+        );
+
+        const normalizedPhone = this.normalizePhone(phone);
+        const fellowshipMatch = this.matchFellowship(area, dbFellowshipMap);
+        const intlArea = this.isInternationalArea(area);
+        const isOnline = churchRole === 'online_member' || intlArea;
+        const isInternational =
+          isOnline && (!normalizedPhone || !normalizedPhone.startsWith('+254'));
+
+        const issues: string[] = [];
+        if (!fullName) issues.push('Missing name');
+        if (!normalizedPhone && !email) issues.push('No phone or email');
+
+        const status:
+          | 'ready'
+          | 'duplicate_in_file'
+          | 'duplicate_in_db'
+          | 'invalid' = !fullName ? 'invalid' : 'ready';
+
+        return {
+          rowIndex,
+          fullName,
+          phone,
+          normalizedPhone,
+          email,
+          gender,
+          ageGroup,
+          area,
+          churchRole,
+          fellowshipId: fellowshipMatch?.id ?? null,
+          fellowshipName: fellowshipMatch?.name ?? null,
+          isOnline,
+          isInternational,
+          issues,
+          status,
+        };
+      });
+
+      // 4. Within-batch dedup (by normalizedPhone and email, case-insensitive)
+      const seenPhones = new Map<string, number>(); // normalizedPhone -> rowIndex
+      const seenEmails = new Map<string, number>(); // email.lower -> rowIndex
+
+      for (const row of intermediate) {
+        if (row.status === 'invalid') continue;
+
+        const emailKey = row.email.toLowerCase();
+
+        if (row.normalizedPhone && seenPhones.has(row.normalizedPhone)) {
+          row.status = 'duplicate_in_file';
+          row.issues.push(
+            `Duplicate of row ${seenPhones.get(row.normalizedPhone)}`,
+          );
+          continue;
+        }
+        if (emailKey && seenEmails.has(emailKey)) {
+          row.status = 'duplicate_in_file';
+          row.issues.push(
+            `Duplicate email — same as row ${seenEmails.get(emailKey)}`,
+          );
+          continue;
+        }
+
+        if (row.normalizedPhone)
+          seenPhones.set(row.normalizedPhone, row.rowIndex);
+        if (emailKey) seenEmails.set(emailKey, row.rowIndex);
+      }
+
+      // 5. DB dedup — query existing phones and emails for non-duplicate rows
+      const phonesToCheck = intermediate
+        .filter((r) => r.status === 'ready' && r.normalizedPhone)
+        .map((r) => r.normalizedPhone as string);
+
+      const emailsToCheck = intermediate
+        .filter((r) => r.status === 'ready' && r.email)
+        .map((r) => r.email.toLowerCase());
+
+      let existingPhones = new Set<string>();
+      if (phonesToCheck.length > 0) {
+        const found = await this.orm
+          .createQueryBuilder('m')
+          .select('m.phone')
+          .where('m.phone IN (:...phones)', { phones: phonesToCheck })
+          .getMany();
+        existingPhones = new Set(
+          found.map((e) => e.phone).filter(Boolean) as string[],
+        );
+      }
+
+      let existingEmails = new Set<string>();
+      if (emailsToCheck.length > 0) {
+        const found = await this.orm
+          .createQueryBuilder('m')
+          .select('m.email')
+          .where('LOWER(m.email) IN (:...emails)', { emails: emailsToCheck })
+          .getMany();
+        existingEmails = new Set(
+          found.map((e) => e.email?.toLowerCase()).filter(Boolean) as string[],
+        );
+      }
+
+      // 6. Mark DB duplicates
+      for (const row of intermediate) {
+        if (row.status !== 'ready') continue;
+        if (row.normalizedPhone && existingPhones.has(row.normalizedPhone)) {
+          row.status = 'duplicate_in_db';
+          row.issues.push('Phone number already registered');
+        } else if (row.email && existingEmails.has(row.email.toLowerCase())) {
+          row.status = 'duplicate_in_db';
+          row.issues.push('Email already registered');
+        }
+      }
+
+      // 7. Build response
+      const rows: BulkPreviewRow[] = intermediate.map((r) => ({
+        rowIndex: r.rowIndex,
+        fullName: r.fullName,
+        phone: r.phone,
+        normalizedPhone: r.normalizedPhone,
+        email: r.email,
+        gender: r.gender,
+        ageGroup: r.ageGroup,
+        area: r.area,
+        churchRole: r.churchRole,
+        fellowshipId: r.fellowshipId,
+        fellowshipName: r.fellowshipName,
+        isOnline: r.isOnline,
+        isInternational: r.isInternational,
+        status: r.status,
+        issues: r.issues,
+      }));
+
+      return Either.right({ rows });
+    } catch (err) {
+      console.error('[MemberRepository.previewBulkImport]', err);
+      return Either.left(new DataError('NetworkError', 'Bulk preview failed'));
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
   private normalizePhone(raw: string): string | null {
     if (!raw?.trim()) return null;
     const original = raw.trim();
@@ -388,7 +647,68 @@ export class MemberRepository implements IMemberRepository {
     )
       return '+254' + cleaned.slice(1);
     if (/^\d{9}$/.test(cleaned)) return '+254' + cleaned;
-    return cleaned.length >= 7 ? original : null;
+    return /^\d{7,15}$/.test(cleaned) ? original : null;
+  }
+
+  private mapChurchRole(raw: string): string {
+    const lower = raw?.toLowerCase()?.trim() ?? '';
+    if (lower.includes('online')) return 'online_member';
+    if (lower.includes('pastor')) return 'pastor';
+    if (lower.includes('elder')) return 'elder';
+    if (lower.includes('overseer')) return 'overseer';
+    if (
+      lower.includes('first-time') ||
+      lower.includes('first time') ||
+      lower.includes('visitor')
+    )
+      return 'first_time_visitor';
+    if (lower.includes('regular')) return 'regular_attendee';
+    return 'church_member';
+  }
+
+  private mapAgeGroup(raw: string): string {
+    const lower = raw?.toLowerCase()?.trim() ?? '';
+    if (
+      lower.includes('under') ||
+      (lower.includes('18') && lower.includes('under'))
+    )
+      return 'under_18';
+    if (lower.includes('18') && lower.includes('25')) return '18_25';
+    if (lower.includes('26') && lower.includes('35')) return '26_35';
+    if (lower.includes('36') && lower.includes('50')) return '36_50';
+    if (lower.includes('above') || lower.includes('50+')) return 'above_50';
+    return '';
+  }
+
+  private mapGender(raw: string): string {
+    const lower = raw?.toLowerCase()?.trim() ?? '';
+    if (lower === 'male' || lower === 'm') return 'male';
+    if (lower === 'female' || lower === 'f') return 'female';
+    return '';
+  }
+
+  private isInternationalArea(area: string): boolean {
+    if (!area?.trim()) return false;
+    const lower = area.toLowerCase();
+    return INTERNATIONAL_AREA_PATTERNS.some((re) => re.test(lower));
+  }
+
+  private matchFellowship(
+    area: string,
+    dbMap: Map<string, { id: string; name: string }>,
+  ): { id: string | null; name: string } | null {
+    if (!area?.trim()) return null;
+    const lower = area.toLowerCase();
+    for (const f of FELLOWSHIP_KEYWORDS) {
+      if (f.keywords.some((kw) => lower.includes(kw))) {
+        // Try to resolve UUID from DB
+        const dbEntry = dbMap.get(f.name.toLowerCase());
+        if (dbEntry) return dbEntry;
+        // Fellowship not yet in DB — return name only, id null
+        return { id: null, name: f.name };
+      }
+    }
+    return null;
   }
 
   private statusFromRole(

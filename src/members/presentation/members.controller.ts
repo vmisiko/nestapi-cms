@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -10,10 +11,14 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -49,18 +54,23 @@ export class MembersController {
     return { data: data.map((m) => new MemberResponseDto(m)), total };
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a member by ID' })
-  @ApiResponse({ status: 200, type: MemberResponseDto })
-  @ApiResponse({ status: 404, description: 'Member not found' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return new MemberResponseDto(await this.service.findById(id));
-  }
-
-  @Get(':id/departments')
-  @ApiOperation({ summary: "List a member's assigned departments" })
-  async findDepartments(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.findDepartments(id);
+  @Post('bulk-preview')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @HttpCode(200)
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary: 'Preview CSV rows before bulk import — no data is saved',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '{ rows: BulkPreviewRow[] }',
+  })
+  async bulkPreview(
+    @UploadedFile() file: Express.Multer.File | undefined,
+  ): Promise<object> {
+    if (!file?.buffer) throw new BadRequestException('No file uploaded');
+    return this.service.previewBulkImport(file.buffer);
   }
 
   @Post('bulk-import')
@@ -80,6 +90,20 @@ export class MembersController {
   @ApiResponse({ status: 201, type: MemberResponseDto })
   async create(@Body() dto: CreateMemberDto) {
     return new MemberResponseDto(await this.service.create(dto));
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a member by ID' })
+  @ApiResponse({ status: 200, type: MemberResponseDto })
+  @ApiResponse({ status: 404, description: 'Member not found' })
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return new MemberResponseDto(await this.service.findById(id));
+  }
+
+  @Get(':id/departments')
+  @ApiOperation({ summary: "List a member's assigned departments" })
+  async findDepartments(@Param('id', ParseUUIDPipe) id: string) {
+    return this.service.findDepartments(id);
   }
 
   @Patch(':id')
