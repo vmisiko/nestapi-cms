@@ -12,7 +12,7 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { AgeGroup, ChurchRole, Gender } from '../../../core/domain/enums';
 
 export class BulkMemberRowDto {
@@ -31,6 +31,7 @@ export class BulkMemberRowDto {
   phone?: string;
 
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsEmail()
   email?: string;
 
