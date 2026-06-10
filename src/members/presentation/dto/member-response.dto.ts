@@ -42,6 +42,21 @@ export class MemberResponseDto {
   @ApiProperty({ nullable: true })
   avatarUrl: string | null;
 
+  @ApiProperty({ nullable: true })
+  gender: string | null;
+
+  @ApiProperty({ nullable: true })
+  ageGroup: string | null;
+
+  @ApiProperty({ nullable: true })
+  churchRole: string | null;
+
+  @ApiProperty()
+  isOnline: boolean;
+
+  @ApiProperty()
+  isInternational: boolean;
+
   @ApiProperty()
   createdAt: Date;
 

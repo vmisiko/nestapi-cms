@@ -6,6 +6,9 @@ import type {
   MemberStatus,
   MemberType,
   ActivityStatus,
+  AgeGroup,
+  ChurchRole,
+  Gender,
 } from './member';
 
 export interface MemberFilters {
@@ -32,6 +35,11 @@ export interface CreateMemberData {
   activityStatus?: ActivityStatus;
   joinedAt?: string;
   avatarUrl?: string | null;
+  gender?: Gender | null;
+  ageGroup?: AgeGroup | null;
+  churchRole?: ChurchRole | null;
+  isOnline?: boolean;
+  isInternational?: boolean;
 }
 
 export interface UpdateMemberData {
@@ -44,6 +52,32 @@ export interface UpdateMemberData {
   memberType?: MemberType;
   activityStatus?: ActivityStatus;
   avatarUrl?: string | null;
+  gender?: Gender | null;
+  ageGroup?: AgeGroup | null;
+  churchRole?: ChurchRole | null;
+  isOnline?: boolean;
+  isInternational?: boolean;
+}
+
+export interface BulkImportRow {
+  fullName: string;
+  rowIndex?: number;
+  phone?: string;
+  email?: string;
+  gender?: Gender;
+  ageGroup?: AgeGroup;
+  fellowshipId?: string;
+  churchRole?: ChurchRole;
+  isOnline?: boolean;
+  isInternational?: boolean;
+  wantsUpdates?: boolean;
+}
+
+export interface BulkImportResult {
+  imported: number;
+  duplicates: number;
+  errors: { row: number; name: string; reason: string }[];
+  members: Member[];
 }
 
 export interface IMemberRepository {
@@ -68,4 +102,7 @@ export interface IMemberRepository {
     memberId: string,
     departmentId: string,
   ): Promise<Either<DataError, void>>;
+  bulkImport(
+    rows: BulkImportRow[],
+  ): Promise<Either<DataError, BulkImportResult>>;
 }

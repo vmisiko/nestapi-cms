@@ -1,6 +1,11 @@
-import { ActivityStatus } from '../../core/domain/enums';
+import {
+  ActivityStatus,
+  AgeGroup,
+  ChurchRole,
+  Gender,
+} from '../../core/domain/enums';
 
-export { ActivityStatus };
+export { ActivityStatus, AgeGroup, ChurchRole, Gender };
 
 export enum MemberStatus {
   GUEST = 'guest',
@@ -25,6 +30,11 @@ export interface Member {
   activityStatus: ActivityStatus;
   joinedAt: string;
   avatarUrl: string | null;
+  gender: Gender | null;
+  ageGroup: AgeGroup | null;
+  churchRole: ChurchRole | null;
+  isOnline: boolean;
+  isInternational: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

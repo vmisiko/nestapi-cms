@@ -28,6 +28,7 @@ const mockMembersService = () => ({
   delete: jest.fn(),
   assignDepartment: jest.fn(),
   removeDepartment: jest.fn(),
+  bulkImport: jest.fn(),
 });
 
 const allowAllGuard = {
@@ -291,6 +292,158 @@ describe('MembersController', () => {
       await request(app.getHttpServer())
         .post(`/members/${ID1}/departments/${ID2}`)
         .expect(409);
+    });
+  });
+
+  describe('POST /members/bulk-import', () => {
+    const validPayload = {
+      rows: [
+        {
+          fullName: 'John Kamau',
+          phone: '+254712345678',
+          churchRole: 'church_member',
+        },
+        {
+          fullName: 'Jane Wangari',
+          phone: '+254798765432',
+          churchRole: 'regular_attendee',
+        },
+      ],
+    };
+
+    it('returns 201 with import result on valid payload', async () => {
+      const importResult = {
+        imported: 2,
+        duplicates: 0,
+        errors: [],
+        members: [makeMember(), makeMember({ id: ID2, firstName: 'Jane' })],
+      };
+      service.bulkImport.mockResolvedValue(importResult);
+
+      await request(app.getHttpServer())
+        .post('/members/bulk-import')
+        .send(validPayload)
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.imported).toBe(2);
+          expect(res.body.duplicates).toBe(0);
+          expect(Array.isArray(res.body.errors)).toBe(true);
+          expect(Array.isArray(res.body.members)).toBe(true);
+        });
+    });
+
+    it('returns 201 with duplicates and errors reported', async () => {
+      const importResult = {
+        imported: 1,
+        duplicates: 1,
+        errors: [
+          {
+            row: 2,
+            name: 'Jane Wangari',
+            reason: 'Phone number already registered',
+          },
+        ],
+        members: [makeMember()],
+      };
+      service.bulkImport.mockResolvedValue(importResult);
+
+      await request(app.getHttpServer())
+        .post('/members/bulk-import')
+        .send(validPayload)
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.imported).toBe(1);
+          expect(res.body.duplicates).toBe(1);
+          expect(res.body.errors).toHaveLength(1);
+          expect(res.body.errors[0].reason).toBe(
+            'Phone number already registered',
+          );
+        });
+    });
+
+    it('returns 201 with zero imports for empty rows', async () => {
+      service.bulkImport.mockResolvedValue({
+        imported: 0,
+        duplicates: 0,
+        errors: [],
+        members: [],
+      });
+
+      await request(app.getHttpServer())
+        .post('/members/bulk-import')
+        .send({ rows: [] })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.imported).toBe(0);
+        });
+    });
+
+    it('returns 400 when rows field is missing', async () => {
+      await request(app.getHttpServer())
+        .post('/members/bulk-import')
+        .send({})
+        .expect(400);
+    });
+
+    it('returns 400 when rows is not an array', async () => {
+      await request(app.getHttpServer())
+        .post('/members/bulk-import')
+        .send({ rows: 'not-an-array' })
+        .expect(400);
+    });
+
+    it('returns 400 when a row has missing fullName', async () => {
+      await request(app.getHttpServer())
+        .post('/members/bulk-import')
+        .send({ rows: [{ phone: '0712345678' }] })
+        .expect(400);
+    });
+
+    it('returns 400 when a row has invalid churchRole enum', async () => {
+      await request(app.getHttpServer())
+        .post('/members/bulk-import')
+        .send({
+          rows: [
+            {
+              fullName: 'Test Member',
+              phone: '0712345678',
+              churchRole: 'archbishop',
+            },
+          ],
+        })
+        .expect(400);
+    });
+
+    it('returns 400 when a row has invalid email format', async () => {
+      await request(app.getHttpServer())
+        .post('/members/bulk-import')
+        .send({
+          rows: [{ fullName: 'Test Member', email: 'not-an-email' }],
+        })
+        .expect(400);
+    });
+
+    it('returns 400 when fellowshipId is not a UUID', async () => {
+      await request(app.getHttpServer())
+        .post('/members/bulk-import')
+        .send({
+          rows: [{ fullName: 'Test Member', fellowshipId: 'not-a-uuid' }],
+        })
+        .expect(400);
+    });
+
+    it('returns 500 when service throws a network error', async () => {
+      service.bulkImport.mockRejectedValue(
+        new HttpException(
+          'Bulk import failed',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+      );
+
+      await request(app.getHttpServer())
+        .post('/members/bulk-import')
+        .send(validPayload)
+        .expect(500);
     });
   });
 

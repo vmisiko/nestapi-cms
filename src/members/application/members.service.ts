@@ -7,11 +7,16 @@ import { UpdateMemberUseCase } from '../domain/usecases/update-member.usecase';
 import { DeleteMemberUseCase } from '../domain/usecases/delete-member.usecase';
 import { AssignMemberToDepartmentUseCase } from '../domain/usecases/assign-member-to-department.usecase';
 import { RemoveMemberFromDepartmentUseCase } from '../domain/usecases/remove-member-from-department.usecase';
+import { BulkImportMembersUseCase } from '../domain/usecases/bulk-import-members.usecase';
 import type { CreateMemberDto } from '../presentation/dto/create-member.dto';
 import type { UpdateMemberDto } from '../presentation/dto/update-member.dto';
 import type { MemberFiltersDto } from '../presentation/dto/member-filters.dto';
+import type { BulkImportMembersDto } from '../presentation/dto/bulk-import-members.dto';
 import type { Member, AssignedDepartment } from '../domain/member';
-import type { MemberFilters } from '../domain/i-member.repository';
+import type {
+  MemberFilters,
+  BulkImportResult,
+} from '../domain/i-member.repository';
 import { toHttpException } from '../../core/application/http-exception.util';
 
 @Injectable()
@@ -23,6 +28,7 @@ export class MembersService {
   private readonly deleteUseCase: DeleteMemberUseCase;
   private readonly assignDept: AssignMemberToDepartmentUseCase;
   private readonly removeDept: RemoveMemberFromDepartmentUseCase;
+  private readonly bulkImportUseCase: BulkImportMembersUseCase;
 
   constructor(readonly repo: MemberRepository) {
     this.getAll = new GetMembersUseCase(repo);
@@ -32,6 +38,7 @@ export class MembersService {
     this.deleteUseCase = new DeleteMemberUseCase(repo);
     this.assignDept = new AssignMemberToDepartmentUseCase(repo);
     this.removeDept = new RemoveMemberFromDepartmentUseCase(repo);
+    this.bulkImportUseCase = new BulkImportMembersUseCase(repo);
   }
 
   async findAll(
@@ -120,6 +127,16 @@ export class MembersService {
         throw toHttpException(err.kind, err.message);
       },
       () => undefined,
+    );
+  }
+
+  async bulkImport(dto: BulkImportMembersDto): Promise<BulkImportResult> {
+    const result = await this.bulkImportUseCase.execute(dto.rows);
+    return result.fold(
+      (err) => {
+        throw toHttpException(err.kind, err.message);
+      },
+      (r) => r,
     );
   }
 }

@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsDateString,
   IsEmail,
   IsEnum,
@@ -8,7 +9,14 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { MemberStatus, MemberType, ActivityStatus } from '../../domain/member';
+import {
+  MemberStatus,
+  MemberType,
+  ActivityStatus,
+  AgeGroup,
+  ChurchRole,
+  Gender,
+} from '../../domain/member';
 
 export class CreateMemberDto {
   @IsString()
@@ -49,4 +57,24 @@ export class CreateMemberDto {
   @IsOptional()
   @IsDateString()
   joinedAt?: string;
+
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender;
+
+  @IsOptional()
+  @IsEnum(AgeGroup)
+  ageGroup?: AgeGroup;
+
+  @IsOptional()
+  @IsEnum(ChurchRole)
+  churchRole?: ChurchRole;
+
+  @IsOptional()
+  @IsBoolean()
+  isOnline?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isInternational?: boolean;
 }

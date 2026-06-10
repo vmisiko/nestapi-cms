@@ -10,6 +10,8 @@ import {
   ID1,
   ID2,
 } from '../../../test/fixtures';
+import { ChurchRole } from '../../domain/member';
+import type { BulkImportResult } from '../../domain/i-member.repository';
 
 const mockMemberRepository = () => ({
   findAll: jest.fn(),
@@ -20,6 +22,7 @@ const mockMemberRepository = () => ({
   findDepartments: jest.fn(),
   assignDepartment: jest.fn(),
   removeDepartment: jest.fn(),
+  bulkImport: jest.fn(),
 });
 
 describe('MembersService', () => {
@@ -220,6 +223,95 @@ describe('MembersService', () => {
         new HttpException(
           'Member is not in this department',
           HttpStatus.NOT_FOUND,
+        ),
+      );
+    });
+  });
+
+  describe('bulkImport', () => {
+    const importResult: BulkImportResult = {
+      imported: 2,
+      duplicates: 1,
+      errors: [
+        {
+          row: 3,
+          name: 'Duplicate Dan',
+          reason: 'Phone number already registered',
+        },
+      ],
+      members: [makeMember(), makeMember({ id: ID2, firstName: 'Grace' })],
+    };
+
+    it('returns import result on success', async () => {
+      repo.bulkImport.mockResolvedValue(Either.right(importResult));
+
+      const result = await service.bulkImport({
+        rows: [
+          { fullName: 'John Doe', phone: '+254712345678' },
+          { fullName: 'Grace Njeri', phone: '+254798765432' },
+          { fullName: 'Duplicate Dan', phone: '+254712345678' },
+        ],
+      });
+
+      expect(result.imported).toBe(2);
+      expect(result.duplicates).toBe(1);
+      expect(result.errors).toHaveLength(1);
+      expect(result.members).toHaveLength(2);
+    });
+
+    it('returns zero counts for empty rows', async () => {
+      const empty: BulkImportResult = {
+        imported: 0,
+        duplicates: 0,
+        errors: [],
+        members: [],
+      };
+      repo.bulkImport.mockResolvedValue(Either.right(empty));
+
+      const result = await service.bulkImport({ rows: [] });
+
+      expect(result.imported).toBe(0);
+      expect(result.duplicates).toBe(0);
+      expect(result.members).toHaveLength(0);
+    });
+
+    it('maps church roles — passes them through to repository', async () => {
+      const roleResult: BulkImportResult = {
+        imported: 1,
+        duplicates: 0,
+        errors: [],
+        members: [makeMember()],
+      };
+      repo.bulkImport.mockResolvedValue(Either.right(roleResult));
+
+      await service.bulkImport({
+        rows: [
+          {
+            fullName: 'Pastor James',
+            phone: '+254711111111',
+            churchRole: ChurchRole.PASTOR,
+          },
+        ],
+      });
+
+      expect(repo.bulkImport).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ churchRole: ChurchRole.PASTOR }),
+        ]),
+      );
+    });
+
+    it('throws 500 on network error', async () => {
+      repo.bulkImport.mockResolvedValue(
+        Either.left(new DataError('NetworkError', 'Bulk import failed')),
+      );
+
+      await expect(
+        service.bulkImport({ rows: [{ fullName: 'John Doe' }] }),
+      ).rejects.toThrow(
+        new HttpException(
+          'Bulk import failed',
+          HttpStatus.INTERNAL_SERVER_ERROR,
         ),
       );
     });

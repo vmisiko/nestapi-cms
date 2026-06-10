@@ -1,6 +1,6 @@
 import { Either } from '../../../../core/domain/either';
 import { DataError } from '../../../../core/domain/data-error';
-import { IMemberRepository } from '../../i-member.repository';
+import { IMemberRepository, BulkImportResult } from '../../i-member.repository';
 import { makeMember, ID1, ID2 } from '../../../../test/fixtures';
 import { CreateMemberUseCase } from '../create-member.usecase';
 import { GetMembersUseCase } from '../get-members.usecase';
@@ -9,7 +9,8 @@ import { UpdateMemberUseCase } from '../update-member.usecase';
 import { DeleteMemberUseCase } from '../delete-member.usecase';
 import { AssignMemberToDepartmentUseCase } from '../assign-member-to-department.usecase';
 import { RemoveMemberFromDepartmentUseCase } from '../remove-member-from-department.usecase';
-import { MemberStatus } from '../../member';
+import { BulkImportMembersUseCase } from '../bulk-import-members.usecase';
+import { MemberStatus, ChurchRole } from '../../member';
 
 const makeRepo = (): jest.Mocked<IMemberRepository> => ({
   findAll: jest.fn(),
@@ -20,6 +21,7 @@ const makeRepo = (): jest.Mocked<IMemberRepository> => ({
   findDepartments: jest.fn(),
   assignDepartment: jest.fn(),
   removeDepartment: jest.fn(),
+  bulkImport: jest.fn(),
 });
 
 // ---------------------------------------------------------------------------
@@ -264,6 +266,145 @@ describe('AssignMemberToDepartmentUseCase', () => {
         () => null,
       ),
     ).toBe('ConflictError');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BulkImportMembersUseCase
+// ---------------------------------------------------------------------------
+describe('BulkImportMembersUseCase', () => {
+  const emptyResult: BulkImportResult = {
+    imported: 0,
+    duplicates: 0,
+    errors: [],
+    members: [],
+  };
+
+  it('delegates rows to repo.bulkImport and returns the result', async () => {
+    const repo = makeRepo();
+    const importResult: BulkImportResult = {
+      imported: 2,
+      duplicates: 1,
+      errors: [
+        {
+          row: 3,
+          name: 'Duplicate Dan',
+          reason: 'Phone number already registered',
+        },
+      ],
+      members: [makeMember(), makeMember({ id: ID2, firstName: 'Grace' })],
+    };
+    repo.bulkImport.mockResolvedValue(Either.right(importResult));
+
+    const rows = [
+      { fullName: 'John Doe', phone: '0712345678' },
+      { fullName: 'Grace Njeri', phone: '0798765432' },
+      { fullName: 'Duplicate Dan', phone: '0712345678' },
+    ];
+
+    const result = await new BulkImportMembersUseCase(repo).execute(rows);
+
+    expect(result.isRight()).toBe(true);
+    expect(repo.bulkImport).toHaveBeenCalledWith(rows);
+    expect(
+      result.fold(
+        () => null,
+        (r) => r.imported,
+      ),
+    ).toBe(2);
+    expect(
+      result.fold(
+        () => null,
+        (r) => r.duplicates,
+      ),
+    ).toBe(1);
+    expect(
+      result.fold(
+        () => null,
+        (r) => r.errors,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('returns the repository result unchanged for empty rows', async () => {
+    const repo = makeRepo();
+    repo.bulkImport.mockResolvedValue(Either.right(emptyResult));
+
+    const result = await new BulkImportMembersUseCase(repo).execute([]);
+
+    expect(result.isRight()).toBe(true);
+    expect(
+      result.fold(
+        () => null,
+        (r) => r.imported,
+      ),
+    ).toBe(0);
+    expect(
+      result.fold(
+        () => null,
+        (r) => r.members,
+      ),
+    ).toHaveLength(0);
+    expect(repo.bulkImport).toHaveBeenCalledWith([]);
+  });
+
+  it('propagates repository errors', async () => {
+    const repo = makeRepo();
+    repo.bulkImport.mockResolvedValue(
+      Either.left(new DataError('NetworkError', 'Bulk import failed')),
+    );
+
+    const result = await new BulkImportMembersUseCase(repo).execute([
+      { fullName: 'John Doe', phone: '0712345678' },
+    ]);
+
+    expect(result.isLeft()).toBe(true);
+    expect(
+      result.fold(
+        (e) => e.kind,
+        () => null,
+      ),
+    ).toBe('NetworkError');
+  });
+
+  it('passes church role through to repo', async () => {
+    const repo = makeRepo();
+    repo.bulkImport.mockResolvedValue(Either.right(emptyResult));
+
+    const rows = [
+      {
+        fullName: 'Pastor Paul',
+        phone: '0700000001',
+        churchRole: ChurchRole.PASTOR,
+      },
+      {
+        fullName: 'Elder Mary',
+        phone: '0700000002',
+        churchRole: ChurchRole.ELDER,
+      },
+    ];
+
+    await new BulkImportMembersUseCase(repo).execute(rows);
+
+    expect(repo.bulkImport).toHaveBeenCalledWith(rows);
+  });
+
+  it('passes isOnline flag through to repo', async () => {
+    const repo = makeRepo();
+    repo.bulkImport.mockResolvedValue(Either.right(emptyResult));
+
+    const rows = [
+      {
+        fullName: 'Online Member',
+        churchRole: ChurchRole.ONLINE_MEMBER,
+        isOnline: true,
+        isInternational: true,
+      },
+    ];
+
+    await new BulkImportMembersUseCase(repo).execute(rows);
+
+    expect(repo.bulkImport).toHaveBeenCalledWith(rows);
   });
 });
 

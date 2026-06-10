@@ -23,6 +23,7 @@ import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { MemberFiltersDto } from './dto/member-filters.dto';
 import { MemberResponseDto } from './dto/member-response.dto';
+import { BulkImportMembersDto } from './dto/bulk-import-members.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -60,6 +61,17 @@ export class MembersController {
   @ApiOperation({ summary: "List a member's assigned departments" })
   async findDepartments(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findDepartments(id);
+  }
+
+  @Post('bulk-import')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({ summary: 'Bulk import members from CSV data' })
+  @ApiResponse({
+    status: 201,
+    description: '{ imported, duplicates, errors, members }',
+  })
+  async bulkImport(@Body() dto: BulkImportMembersDto) {
+    return this.service.bulkImport(dto);
   }
 
   @Post()

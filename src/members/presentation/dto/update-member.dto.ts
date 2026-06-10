@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsOptional,
@@ -7,7 +8,14 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { MemberStatus, MemberType, ActivityStatus } from '../../domain/member';
+import {
+  MemberStatus,
+  MemberType,
+  ActivityStatus,
+  AgeGroup,
+  ChurchRole,
+  Gender,
+} from '../../domain/member';
 
 export class UpdateMemberDto {
   @IsOptional()
@@ -46,4 +54,24 @@ export class UpdateMemberDto {
   @IsOptional()
   @IsEnum(ActivityStatus)
   activityStatus?: ActivityStatus;
+
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender;
+
+  @IsOptional()
+  @IsEnum(AgeGroup)
+  ageGroup?: AgeGroup;
+
+  @IsOptional()
+  @IsEnum(ChurchRole)
+  churchRole?: ChurchRole;
+
+  @IsOptional()
+  @IsBoolean()
+  isOnline?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isInternational?: boolean;
 }

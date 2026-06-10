@@ -67,6 +67,21 @@ export class MemberEntity {
   @Column({ type: 'varchar', name: 'avatar_url', length: 500, nullable: true })
   avatarUrl: string | null;
 
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  gender: string | null;
+
+  @Column({ name: 'age_group', type: 'varchar', length: 20, nullable: true })
+  ageGroup: string | null;
+
+  @Column({ name: 'church_role', type: 'varchar', length: 30, nullable: true })
+  churchRole: string | null;
+
+  @Column({ name: 'is_online', type: 'boolean', default: false })
+  isOnline: boolean;
+
+  @Column({ name: 'is_international', type: 'boolean', default: false })
+  isInternational: boolean;
+
   @ManyToMany(() => DepartmentEntity, (dept) => dept.members)
   @JoinTable({
     name: 'member_departments',
