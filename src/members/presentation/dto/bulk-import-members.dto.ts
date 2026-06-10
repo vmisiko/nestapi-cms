@@ -31,7 +31,11 @@ export class BulkMemberRowDto {
   phone?: string;
 
   @IsOptional()
-  @Transform(({ value }) => (value === '' ? undefined : value))
+  @Transform(({ value }) => {
+    if (!value || typeof value !== 'string') return undefined;
+    const cleaned = value.trim().replace(/[.,;:!?]+$/, '').replace(/[.,;:!?]+@/, '@');
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned) ? cleaned : undefined;
+  })
   @IsEmail()
   email?: string;
 
