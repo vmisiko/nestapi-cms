@@ -20,6 +20,9 @@ export class MessageResponseDto {
   @ApiProperty({ nullable: true })
   targetId: string | null;
 
+  @ApiProperty({ type: [String] })
+  memberIds: string[];
+
   @ApiProperty()
   status: string;
 
@@ -45,6 +48,7 @@ export class MessageResponseDto {
     this.type = m.type;
     this.targetGroup = m.targetGroup;
     this.targetId = m.targetId;
+    this.memberIds = m.memberIds;
     this.status = m.status;
     this.scheduledAt = m.scheduledAt;
     this.sentAt = m.sentAt;

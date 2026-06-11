@@ -1,4 +1,6 @@
 import {
+  ArrayMaxSize,
+  IsArray,
   IsDateString,
   IsEnum,
   IsOptional,
@@ -28,6 +30,12 @@ export class CreateMessageDto {
   @IsOptional()
   @IsUUID()
   targetId?: string | null;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(2500)
+  @IsUUID('4', { each: true })
+  memberIds?: string[];
 
   @IsOptional()
   @IsDateString()

@@ -103,6 +103,7 @@ export class MessageRepository implements IMessageRepository {
     type: e.type,
     targetGroup: e.targetGroup,
     targetId: e.targetId,
+    memberIds: e.memberIds ?? [],
     status: e.status,
     scheduledAt: e.scheduledAt,
     sentAt: e.sentAt,

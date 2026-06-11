@@ -92,6 +92,7 @@ export class MessagingService {
       type: dto.type,
       targetGroup: dto.targetGroup,
       targetId: dto.targetId,
+      memberIds: dto.memberIds,
       scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
       createdBy,
     });
@@ -150,6 +151,7 @@ export class MessagingService {
     const recipients = await this.resolver.resolve(
       message.targetGroup,
       message.targetId,
+      message.memberIds,
     );
     if (recipients.length === 0) {
       throw toHttpException(

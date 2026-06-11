@@ -31,14 +31,16 @@ export class TargetGroupResolverService {
   async resolve(
     targetGroup: MessageTargetGroup,
     targetId: string | null,
+    memberIds?: string[],
   ): Promise<MessageRecipient[]> {
-    const members = await this.fetchMembers(targetGroup, targetId);
+    const members = await this.fetchMembers(targetGroup, targetId, memberIds);
     return this.toRecipients(members);
   }
 
   private async fetchMembers(
     targetGroup: MessageTargetGroup,
     targetId: string | null,
+    memberIds?: string[],
   ): Promise<MemberEntity[]> {
     const base = this.memberOrm
       .createQueryBuilder('m')
@@ -78,6 +80,12 @@ export class TargetGroupResolverService {
           .andWhere('m.fellowship_id IN (:...fellowshipIds)', { fellowshipIds })
           .getMany();
       }
+
+      case MessageTargetGroup.MEMBERS:
+        if (!memberIds || memberIds.length === 0) return [];
+        return base
+          .andWhere('m.id IN (:...memberIds)', { memberIds })
+          .getMany();
 
       default:
         this.logger.warn(`Unknown target group: ${String(targetGroup)}`);

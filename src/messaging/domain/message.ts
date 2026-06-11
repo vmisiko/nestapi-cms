@@ -10,6 +10,7 @@ export enum MessageTargetGroup {
   FELLOWSHIP = 'fellowship',
   DEPARTMENT = 'department',
   ZONE = 'zone',
+  MEMBERS = 'members',
 }
 
 export enum MessageStatus {
@@ -24,6 +25,7 @@ export interface Message {
   type: MessageType;
   targetGroup: MessageTargetGroup;
   targetId: string | null;
+  memberIds: string[];
   status: MessageStatus;
   scheduledAt: Date | null;
   sentAt: Date | null;

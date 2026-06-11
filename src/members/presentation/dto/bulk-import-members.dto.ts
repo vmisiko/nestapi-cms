@@ -70,7 +70,7 @@ export class BulkMemberRowDto {
 
 export class BulkImportMembersDto {
   @IsArray()
-  @ArrayMaxSize(2000)
+  @ArrayMaxSize(2500)
   @ValidateNested({ each: true })
   @Type(() => BulkMemberRowDto)
   rows: BulkMemberRowDto[];

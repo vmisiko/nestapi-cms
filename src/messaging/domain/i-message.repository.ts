@@ -8,6 +8,7 @@ export interface CreateMessageData {
   type: string;
   targetGroup: string;
   targetId?: string | null;
+  memberIds?: string[];
   scheduledAt?: Date | null;
   createdBy: string;
 }

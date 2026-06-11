@@ -40,6 +40,9 @@ export class MessageEntity {
   @Column({ name: 'target_id', type: 'uuid', nullable: true })
   targetId: string | null;
 
+  @Column({ name: 'member_ids', type: 'uuid', array: true, default: [] })
+  memberIds: string[];
+
   @Column({ type: 'enum', enum: MessageStatus, default: MessageStatus.DRAFT })
   status: MessageStatus;
 
