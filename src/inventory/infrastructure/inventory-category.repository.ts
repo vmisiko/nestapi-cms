@@ -91,6 +91,7 @@ export class InventoryCategoryRepository implements IInventoryCategoryRepository
     id: e.id,
     name: e.name,
     description: e.description,
+    leaderId: e.leaderId,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
   });

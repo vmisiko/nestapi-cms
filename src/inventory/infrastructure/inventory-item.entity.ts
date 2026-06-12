@@ -9,6 +9,8 @@ import {
 } from 'typeorm';
 import { InventoryCategoryEntity } from './inventory-category.entity';
 
+export type ItemCondition = 'excellent' | 'good' | 'fair' | 'poor';
+
 @Entity('inventory_items')
 export class InventoryItemEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -17,6 +19,9 @@ export class InventoryItemEntity {
   @Column({ length: 200 })
   name: string;
 
+  @Column({ length: 50, unique: true })
+  code: string;
+
   @Column({ name: 'category_id', type: 'uuid' })
   categoryId: string;
 
@@ -24,20 +29,18 @@ export class InventoryItemEntity {
   @JoinColumn({ name: 'category_id' })
   category: InventoryCategoryEntity;
 
-  @Column({ type: 'int', default: 0 })
-  quantity: number;
+  @Column({ name: 'total_qty', type: 'int', default: 0 })
+  totalQty: number;
 
-  @Column({ length: 50 })
-  unit: string;
+  @Column({ name: 'available_qty', type: 'int', default: 0 })
+  availableQty: number;
 
-  @Column({ name: 'min_stock_level', type: 'int', default: 0 })
-  minStockLevel: number;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  location: string | null;
-
-  @Column({ type: 'text', nullable: true })
-  description: string | null;
+  @Column({
+    type: 'enum',
+    enum: ['excellent', 'good', 'fair', 'poor'],
+    nullable: true,
+  })
+  condition: ItemCondition | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

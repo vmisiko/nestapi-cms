@@ -1,11 +1,11 @@
 import {
-  IsInt,
+  IsEnum,
   IsOptional,
   IsString,
   IsUUID,
   MaxLength,
-  Min,
 } from 'class-validator';
+import type { ItemCondition } from '../../domain/inventory-item';
 
 export class UpdateItemDto {
   @IsOptional()
@@ -14,30 +14,15 @@ export class UpdateItemDto {
   name?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  code?: string;
+
+  @IsOptional()
   @IsUUID()
   categoryId?: string;
 
   @IsOptional()
-  @IsInt()
-  @Min(0)
-  quantity?: number;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  unit?: string;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  minStockLevel?: number;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  location?: string | null;
-
-  @IsOptional()
-  @IsString()
-  description?: string | null;
+  @IsEnum(['excellent', 'good', 'fair', 'poor'])
+  condition?: ItemCondition | null;
 }

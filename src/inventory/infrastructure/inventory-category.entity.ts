@@ -17,6 +17,9 @@ export class InventoryCategoryEntity {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
+  @Column({ name: 'leader_id', type: 'uuid', nullable: true })
+  leaderId: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

@@ -14,7 +14,7 @@ export class AdjustItemStockUseCase {
     if (found.isLeft()) return found;
 
     const item = found.getOrElse(null as unknown as InventoryItem);
-    if (item.quantity + delta < 0) {
+    if (item.availableQty + delta < 0) {
       return Either.left(DataError.businessRule('Stock cannot go below zero'));
     }
     return this.repo.adjustStock(id, delta);

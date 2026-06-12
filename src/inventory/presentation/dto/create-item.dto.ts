@@ -1,4 +1,5 @@
 import {
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
@@ -7,6 +8,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import type { ItemCondition } from '../../domain/inventory-item';
 
 export class CreateItemDto {
   @IsString()
@@ -14,29 +16,20 @@ export class CreateItemDto {
   @MaxLength(200)
   name: string;
 
+  @IsString()
+  @MinLength(1)
+  @MaxLength(50)
+  code: string;
+
   @IsUUID()
   categoryId: string;
 
   @IsOptional()
   @IsInt()
   @Min(0)
-  quantity?: number;
-
-  @IsString()
-  @MaxLength(50)
-  unit: string;
+  totalQty?: number;
 
   @IsOptional()
-  @IsInt()
-  @Min(0)
-  minStockLevel?: number;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  location?: string | null;
-
-  @IsOptional()
-  @IsString()
-  description?: string | null;
+  @IsEnum(['excellent', 'good', 'fair', 'poor'])
+  condition?: ItemCondition | null;
 }

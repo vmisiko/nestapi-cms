@@ -5,11 +5,13 @@ import type { InventoryCategory } from './inventory-category';
 export interface CreateCategoryData {
   name: string;
   description?: string | null;
+  leaderId?: string | null;
 }
 
 export interface UpdateCategoryData {
   name?: string;
   description?: string | null;
+  leaderId?: string | null;
 }
 
 export interface IInventoryCategoryRepository {

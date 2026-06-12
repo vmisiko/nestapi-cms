@@ -1,25 +1,20 @@
 import type { Either } from '../../core/domain/either';
 import type { DataError } from '../../core/domain/data-error';
-import type { InventoryItem } from './inventory-item';
+import type { InventoryItem, ItemCondition } from './inventory-item';
 
 export interface CreateItemData {
   name: string;
+  code: string;
   categoryId: string;
-  quantity?: number;
-  unit: string;
-  minStockLevel?: number;
-  location?: string | null;
-  description?: string | null;
+  totalQty?: number;
+  condition?: ItemCondition | null;
 }
 
 export interface UpdateItemData {
   name?: string;
+  code?: string;
   categoryId?: string;
-  quantity?: number;
-  unit?: string;
-  minStockLevel?: number;
-  location?: string | null;
-  description?: string | null;
+  condition?: ItemCondition | null;
 }
 
 export interface IInventoryItemRepository {
@@ -35,7 +30,7 @@ export interface IInventoryItemRepository {
   ): Promise<Either<DataError, InventoryItem>>;
   adjustStock(
     id: string,
-    delta: number,
+    adjustment: number,
   ): Promise<Either<DataError, InventoryItem>>;
   delete(id: string): Promise<Either<DataError, void>>;
 }

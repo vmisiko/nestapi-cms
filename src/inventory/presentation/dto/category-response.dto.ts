@@ -11,6 +11,9 @@ export class CategoryResponseDto {
   @ApiProperty({ nullable: true })
   description: string | null;
 
+  @ApiProperty({ nullable: true })
+  leaderId: string | null;
+
   @ApiProperty()
   createdAt: Date;
 
@@ -21,6 +24,7 @@ export class CategoryResponseDto {
     this.id = c.id;
     this.name = c.name;
     this.description = c.description;
+    this.leaderId = c.leaderId;
     this.createdAt = c.createdAt;
     this.updatedAt = c.updatedAt;
   }

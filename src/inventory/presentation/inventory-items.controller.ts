@@ -78,7 +78,7 @@ export class InventoryItemsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AdjustStockDto,
   ) {
-    return new ItemResponseDto(await this.service.adjustStock(id, dto.delta));
+    return new ItemResponseDto(await this.service.adjustStock(id, dto.adjustment));
   }
 
   @ApiOperation({ summary: 'Delete an inventory item (super_admin only)' })

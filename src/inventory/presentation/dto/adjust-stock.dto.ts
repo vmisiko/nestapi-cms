@@ -1,7 +1,11 @@
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class AdjustStockDto {
   @IsInt()
   @IsNotEmpty()
-  delta: number;
+  adjustment: number;
+
+  @IsOptional()
+  @IsString()
+  reason?: string;
 }

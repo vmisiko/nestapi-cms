@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateCategoryDto {
   @IsOptional()
@@ -9,4 +9,8 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsString()
   description?: string | null;
+
+  @IsOptional()
+  @IsUUID()
+  leaderId?: string | null;
 }

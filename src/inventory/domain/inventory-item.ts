@@ -1,12 +1,13 @@
+export type ItemCondition = 'excellent' | 'good' | 'fair' | 'poor';
+
 export interface InventoryItem {
   id: string;
   name: string;
+  code: string;
   categoryId: string;
-  quantity: number;
-  unit: string;
-  minStockLevel: number;
-  location: string | null;
-  description: string | null;
+  totalQty: number;
+  availableQty: number;
+  condition: ItemCondition | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -64,7 +64,15 @@ export class InventoryItemRepository implements IInventoryItemRepository {
     data: CreateItemData,
   ): Promise<Either<DataError, InventoryItem>> {
     try {
-      const entity = this.orm.create(data as Partial<InventoryItemEntity>);
+      const totalQty = data.totalQty ?? 0;
+      const entity = this.orm.create({
+        name: data.name,
+        code: data.code,
+        categoryId: data.categoryId,
+        totalQty,
+        availableQty: totalQty,
+        condition: data.condition ?? null,
+      });
       const saved = await this.orm.save(entity);
       return Either.right(this.toItem(saved));
     } catch {
@@ -90,13 +98,13 @@ export class InventoryItemRepository implements IInventoryItemRepository {
 
   async adjustStock(
     id: string,
-    delta: number,
+    adjustment: number,
   ): Promise<Either<DataError, InventoryItem>> {
     try {
       await this.orm
         .createQueryBuilder()
         .update(InventoryItemEntity)
-        .set({ quantity: () => `quantity + ${delta}` })
+        .set({ availableQty: () => `available_qty + ${adjustment}` })
         .where('id = :id', { id })
         .execute();
       return this.findById(id);
@@ -125,12 +133,11 @@ export class InventoryItemRepository implements IInventoryItemRepository {
   private toItem = (e: InventoryItemEntity): InventoryItem => ({
     id: e.id,
     name: e.name,
+    code: e.code,
     categoryId: e.categoryId,
-    quantity: e.quantity,
-    unit: e.unit,
-    minStockLevel: e.minStockLevel,
-    location: e.location,
-    description: e.description,
+    totalQty: e.totalQty,
+    availableQty: e.availableQty,
+    condition: e.condition,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
   });
