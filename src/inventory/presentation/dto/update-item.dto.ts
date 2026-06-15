@@ -1,9 +1,11 @@
 import {
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
   IsUUID,
   MaxLength,
+  Min,
 } from 'class-validator';
 import type { ItemCondition } from '../../domain/inventory-item';
 
@@ -21,6 +23,11 @@ export class UpdateItemDto {
   @IsOptional()
   @IsUUID()
   categoryId?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  totalQty?: number;
 
   @IsOptional()
   @IsEnum(['excellent', 'good', 'fair', 'poor'])

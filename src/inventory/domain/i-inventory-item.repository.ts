@@ -14,6 +14,7 @@ export interface UpdateItemData {
   name?: string;
   code?: string;
   categoryId?: string;
+  totalQty?: number;
   condition?: ItemCondition | null;
 }
 
