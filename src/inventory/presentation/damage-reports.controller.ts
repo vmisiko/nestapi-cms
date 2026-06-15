@@ -24,7 +24,6 @@ import { DamageReportResponseDto } from './dto/damage-report-response.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '../../users/domain/user';
 
 @ApiTags('Inventory — Damage Reports')
@@ -55,12 +54,9 @@ export class DamageReportsController {
   @ApiResponse({ status: 201, type: DamageReportResponseDto })
   @Post()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-  async create(
-    @Body() dto: CreateDamageReportDto,
-    @CurrentUser('sub') userId: string,
-  ) {
+  async create(@Body() dto: CreateDamageReportDto) {
     return new DamageReportResponseDto(
-      await this.service.createDamageReport(dto, userId),
+      await this.service.createDamageReport(dto),
     );
   }
 

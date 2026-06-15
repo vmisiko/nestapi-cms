@@ -18,7 +18,7 @@ import {
 import { AttendanceStatus } from '../../attendance/domain/attendance-record';
 import { MessageStatus } from '../../messaging/domain/message';
 import { DeliveryStatus } from '../../messaging/domain/message-delivery';
-import { DamageReportStatus } from '../../inventory/domain/damage-report';
+import { DamageStatus } from '../../inventory/domain/damage-report';
 import type { DashboardStatsDto } from '../presentation/dto/dashboard-stats.dto';
 
 @Injectable()
@@ -237,7 +237,7 @@ export class DashboardService {
           .createQueryBuilder('i')
           .where('i.quantity <= i.min_stock_level')
           .getCount(),
-        this.damageOrm.count({ where: { status: DamageReportStatus.PENDING } }),
+        this.damageOrm.count({ where: { status: DamageStatus.PENDING } }),
       ],
     );
     return { totalItems, lowStockItems, pendingDamageReports };

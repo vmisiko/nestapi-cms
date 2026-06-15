@@ -1,14 +1,14 @@
-import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
-import { DamageReportStatus } from '../../domain/damage-report';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { DamageStatus } from '../../domain/damage-report';
 
 export class UpdateDamageReportDto {
   @IsOptional()
-  @IsEnum(DamageReportStatus)
-  status?: DamageReportStatus;
+  @IsEnum(DamageStatus)
+  status?: DamageStatus;
 
   @IsOptional()
-  @IsDateString()
-  resolvedAt?: string | null;
+  @IsString()
+  resolution?: string | null;
 
   @IsOptional()
   @IsString()

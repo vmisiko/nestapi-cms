@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { DamageReportStatus } from '../domain/damage-report';
 import { InventoryItemEntity } from './inventory-item.entity';
 
 @Entity('damage_reports')
@@ -22,24 +21,29 @@ export class DamageReportEntity {
   @JoinColumn({ name: 'item_id' })
   item: InventoryItemEntity;
 
-  @Column({ name: 'quantity_damaged', type: 'int' })
-  quantityDamaged: number;
+  @Column({ name: 'reported_by_name', type: 'varchar', length: 200 })
+  reportedByName: string;
+
+  @Column({ name: 'damage_type', type: 'varchar', length: 20 })
+  damageType: string;
+
+  @Column({ type: 'varchar', length: 20 })
+  severity: string;
+
+  @Column({ name: 'quantity_affected', type: 'int' })
+  quantityAffected: number;
 
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ name: 'reported_by', type: 'uuid' })
-  reportedBy: string;
+  @Column({ name: 'report_date', type: 'date' })
+  reportDate: string;
 
-  @Column({
-    type: 'enum',
-    enum: DamageReportStatus,
-    default: DamageReportStatus.PENDING,
-  })
-  status: DamageReportStatus;
+  @Column({ type: 'varchar', length: 30, default: 'pending' })
+  status: string;
 
-  @Column({ name: 'resolved_at', type: 'timestamptz', nullable: true })
-  resolvedAt: Date | null;
+  @Column({ type: 'text', nullable: true })
+  resolution: string | null;
 
   @Column({ type: 'text', nullable: true })
   notes: string | null;

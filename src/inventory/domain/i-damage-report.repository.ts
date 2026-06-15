@@ -1,18 +1,21 @@
 import type { Either } from '../../core/domain/either';
 import type { DataError } from '../../core/domain/data-error';
-import type { DamageReport } from './damage-report';
+import type { DamageReport, DamageStatus } from './damage-report';
 
 export interface CreateDamageReportData {
   itemId: string;
-  quantityDamaged: number;
+  reportedByName: string;
+  damageType: string;
+  severity: string;
+  quantityAffected: number;
   description: string;
-  reportedBy: string;
+  reportDate: string;
   notes?: string | null;
 }
 
 export interface UpdateDamageReportData {
-  status?: string;
-  resolvedAt?: Date | null;
+  status?: DamageStatus;
+  resolution?: string | null;
   notes?: string | null;
 }
 

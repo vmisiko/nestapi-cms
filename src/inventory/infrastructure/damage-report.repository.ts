@@ -63,7 +63,17 @@ export class DamageReportRepository implements IDamageReportRepository {
     data: CreateDamageReportData,
   ): Promise<Either<DataError, DamageReport>> {
     try {
-      const entity = this.orm.create(data as Partial<DamageReportEntity>);
+      const entity = this.orm.create({
+        itemId: data.itemId,
+        reportedByName: data.reportedByName,
+        damageType: data.damageType,
+        severity: data.severity,
+        quantityAffected: data.quantityAffected,
+        description: data.description,
+        reportDate: data.reportDate,
+        notes: data.notes ?? null,
+        status: 'pending',
+      });
       const saved = await this.orm.save(entity);
       return Either.right(this.toReport(saved));
     } catch {
@@ -78,7 +88,7 @@ export class DamageReportRepository implements IDamageReportRepository {
     data: UpdateDamageReportData,
   ): Promise<Either<DataError, DamageReport>> {
     try {
-      await this.orm.update(id, data as Partial<DamageReportEntity>);
+      await this.orm.update(id, data);
       return this.findById(id);
     } catch {
       return Either.left(
@@ -103,11 +113,14 @@ export class DamageReportRepository implements IDamageReportRepository {
   private toReport = (e: DamageReportEntity): DamageReport => ({
     id: e.id,
     itemId: e.itemId,
-    quantityDamaged: e.quantityDamaged,
+    reportedByName: e.reportedByName,
+    damageType: e.damageType as DamageReport['damageType'],
+    severity: e.severity as DamageReport['severity'],
+    quantityAffected: e.quantityAffected,
     description: e.description,
-    reportedBy: e.reportedBy,
-    status: e.status,
-    resolvedAt: e.resolvedAt,
+    reportDate: e.reportDate,
+    status: e.status as DamageReport['status'],
+    resolution: e.resolution,
     notes: e.notes,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,

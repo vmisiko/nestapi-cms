@@ -33,7 +33,10 @@ export class BulkMemberRowDto {
   @IsOptional()
   @Transform(({ value }) => {
     if (!value || typeof value !== 'string') return undefined;
-    const cleaned = value.trim().replace(/[.,;:!?]+$/, '').replace(/[.,;:!?]+@/, '@');
+    const cleaned = value
+      .trim()
+      .replace(/[.,;:!?]+$/, '')
+      .replace(/[.,;:!?]+@/, '@');
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned) ? cleaned : undefined;
   })
   @IsEmail()

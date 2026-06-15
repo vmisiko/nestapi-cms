@@ -25,6 +25,7 @@ import { ItemResponseDto } from './dto/item-response.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '../../users/domain/user';
 
 @ApiTags('Inventory — Items')
@@ -77,8 +78,14 @@ export class InventoryItemsController {
   async adjustStock(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AdjustStockDto,
+    @CurrentUser('email') performedBy: string,
   ) {
-    return new ItemResponseDto(await this.service.adjustStock(id, dto.adjustment));
+    return new ItemResponseDto(
+      await this.service.adjustStock(id, dto.adjustment, {
+        reason: dto.reason,
+        performedBy,
+      }),
+    );
   }
 
   @ApiOperation({ summary: 'Delete an inventory item (super_admin only)' })
