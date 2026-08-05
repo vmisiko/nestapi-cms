@@ -4,6 +4,10 @@ export class UpdateDamageReports1780963400000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Drop old PostgreSQL enum used by the status column (if it exists)
     await queryRunner.query(`
+      ALTER TABLE "damage_reports" ALTER COLUMN "status" DROP DEFAULT
+    `);
+
+    await queryRunner.query(`
       ALTER TABLE "damage_reports"
         ALTER COLUMN "status" TYPE varchar(30) USING status::text
     `);
