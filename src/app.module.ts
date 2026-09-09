@@ -13,6 +13,7 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { FollowUpsModule } from './follow-ups/follow-ups.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     MessagingModule,
     InventoryModule,
     DashboardModule,
+    FollowUpsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
