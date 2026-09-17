@@ -5,7 +5,17 @@ export class CreateFollowUpTables1781049600000 implements MigrationInterface {
     await queryRunner.query(`
       DO $$ BEGIN
         CREATE TYPE "follow_up_status" AS ENUM ('open', 'completed', 'cancelled');
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$
+    `);
+    await queryRunner.query(`
+      DO $$ BEGIN
         CREATE TYPE "follow_up_contact_method" AS ENUM ('call', 'sms', 'email', 'visit', 'other');
+      EXCEPTION WHEN duplicate_object THEN NULL;
+      END $$
+    `);
+    await queryRunner.query(`
+      DO $$ BEGIN
         CREATE TYPE "follow_up_outcome" AS ENUM ('connected', 'no_answer', 'requested_callback', 'not_interested', 'wrong_number', 'other');
       EXCEPTION WHEN duplicate_object THEN NULL;
       END $$

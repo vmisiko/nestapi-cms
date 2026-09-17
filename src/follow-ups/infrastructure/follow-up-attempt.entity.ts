@@ -25,10 +25,19 @@ export class FollowUpAttemptEntity {
   @JoinColumn({ name: 'task_id' })
   task: FollowUpEntity;
 
-  @Column({ name: 'contact_method', type: 'enum', enum: FollowUpContactMethod })
+  @Column({
+    name: 'contact_method',
+    type: 'enum',
+    enum: FollowUpContactMethod,
+    enumName: 'follow_up_contact_method',
+  })
   contactMethod: FollowUpContactMethod;
 
-  @Column({ type: 'enum', enum: FollowUpOutcome })
+  @Column({
+    type: 'enum',
+    enum: FollowUpOutcome,
+    enumName: 'follow_up_outcome',
+  })
   outcome: FollowUpOutcome;
 
   @Column({ type: 'text', nullable: true })

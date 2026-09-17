@@ -39,7 +39,12 @@ export class FollowUpEntity {
   @Column({ name: 'due_date', type: 'date' })
   dueDate: string;
 
-  @Column({ type: 'enum', enum: FollowUpStatus, default: FollowUpStatus.OPEN })
+  @Column({
+    type: 'enum',
+    enum: FollowUpStatus,
+    enumName: 'follow_up_status',
+    default: FollowUpStatus.OPEN,
+  })
   status: FollowUpStatus;
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })

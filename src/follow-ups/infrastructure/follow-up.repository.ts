@@ -63,10 +63,9 @@ export class FollowUpRepository {
     if (!task) return null;
 
     Object.assign(task, data);
-    if (data.status === FollowUpStatus.COMPLETED) {
-      task.completedAt = new Date();
-    } else if (data.status === FollowUpStatus.OPEN) {
-      task.completedAt = null;
+    if (data.status) {
+      task.completedAt =
+        data.status === FollowUpStatus.COMPLETED ? new Date() : null;
     }
 
     return this.tasks.save(task);

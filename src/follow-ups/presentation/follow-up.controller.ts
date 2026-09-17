@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseEnumPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -31,7 +32,13 @@ export class FollowUpController {
 
   @Get()
   @ApiOperation({ summary: 'List follow-up tasks, optionally by status' })
-  findAll(@Query('status') status?: FollowUpStatus) {
+  findAll(
+    @Query(
+      'status',
+      new ParseEnumPipe(FollowUpStatus, { optional: true }),
+    )
+    status?: FollowUpStatus,
+  ) {
     return this.service.findAll(status);
   }
 
