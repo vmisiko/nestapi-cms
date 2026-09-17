@@ -10,8 +10,11 @@ import { MessageEntity } from '../../messaging/infrastructure/message.entity';
 import { MessageDeliveryEntity } from '../../messaging/infrastructure/message-delivery.entity';
 import { InventoryItemEntity } from '../../inventory/infrastructure/inventory-item.entity';
 import { DamageReportEntity } from '../../inventory/infrastructure/damage-report.entity';
+import { FollowUpEntity } from '../../follow-ups/infrastructure/follow-up.entity';
+import { FollowUpAttemptEntity } from '../../follow-ups/infrastructure/follow-up-attempt.entity';
 import {
   ActivityStatus,
+  ChurchRole,
   MemberStatus,
   MemberType,
 } from '../../members/domain/member';
@@ -19,6 +22,7 @@ import { AttendanceStatus } from '../../attendance/domain/attendance-record';
 import { MessageStatus } from '../../messaging/domain/message';
 import { DeliveryStatus } from '../../messaging/domain/message-delivery';
 import { DamageStatus } from '../../inventory/domain/damage-report';
+import { FollowUpStatus } from '../../follow-ups/domain/follow-up';
 import type { DashboardStatsDto } from '../presentation/dto/dashboard-stats.dto';
 
 @Injectable()
@@ -42,6 +46,10 @@ export class DashboardService {
     private readonly itemOrm: Repository<InventoryItemEntity>,
     @InjectRepository(DamageReportEntity)
     private readonly damageOrm: Repository<DamageReportEntity>,
+    @InjectRepository(FollowUpEntity)
+    private readonly followUpOrm: Repository<FollowUpEntity>,
+    @InjectRepository(FollowUpAttemptEntity)
+    private readonly followUpAttemptOrm: Repository<FollowUpAttemptEntity>,
   ) {}
 
   async getStats(): Promise<DashboardStatsDto> {
@@ -52,6 +60,7 @@ export class DashboardService {
       attendance,
       messaging,
       inventory,
+      followUps,
     ] = await Promise.all([
       this.getMemberStats(),
       this.getFellowshipStats(),
@@ -59,6 +68,7 @@ export class DashboardService {
       this.getAttendanceStats(),
       this.getMessagingStats(),
       this.getInventoryStats(),
+      this.getFollowUpStats(),
     ]);
 
     return {
@@ -68,23 +78,29 @@ export class DashboardService {
       attendance,
       messaging,
       inventory,
+      followUps,
     };
   }
 
   private async getMemberStats() {
-    const rows = await this.memberOrm
-      .createQueryBuilder('m')
-      .select('m.activity_status', 'activityStatus')
-      .addSelect('m.status', 'status')
-      .addSelect('m.member_type', 'memberType')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('m.activity_status, m.status, m.member_type')
-      .getRawMany<{
-        activityStatus: string;
-        status: string;
-        memberType: string;
-        count: string;
-      }>();
+    const [rows, firstTimeVisitors] = await Promise.all([
+      this.memberOrm
+        .createQueryBuilder('m')
+        .select('m.activity_status', 'activityStatus')
+        .addSelect('m.status', 'status')
+        .addSelect('m.member_type', 'memberType')
+        .addSelect('COUNT(*)', 'count')
+        .groupBy('m.activity_status, m.status, m.member_type')
+        .getRawMany<{
+          activityStatus: string;
+          status: string;
+          memberType: string;
+          count: string;
+        }>(),
+      this.memberOrm.count({
+        where: { churchRole: ChurchRole.FIRST_TIME_VISITOR },
+      }),
+    ]);
 
     let total = 0,
       active = 0,
@@ -114,6 +130,7 @@ export class DashboardService {
       total,
       active,
       inactive,
+      firstTimeVisitors,
       byStatus: { guest, member, leader },
       byType: { adult, child },
     };
@@ -241,5 +258,59 @@ export class DashboardService {
       ],
     );
     return { totalItems, lowStockItems, pendingDamageReports };
+  }
+
+  private async getFollowUpStats() {
+    const today = new Date().toISOString().slice(0, 10);
+
+    const [open, overdue, completed, unassigned, total, recentAttempts] =
+      await Promise.all([
+        this.followUpOrm.count({ where: { status: FollowUpStatus.OPEN } }),
+        this.followUpOrm
+          .createQueryBuilder('f')
+          .where('f.status = :status', { status: FollowUpStatus.OPEN })
+          .andWhere('f.due_date < :today', { today })
+          .getCount(),
+        this.followUpOrm.count({
+          where: { status: FollowUpStatus.COMPLETED },
+        }),
+        this.followUpOrm
+          .createQueryBuilder('f')
+          .where('f.status = :status', { status: FollowUpStatus.OPEN })
+          .andWhere('f.owner_id IS NULL')
+          .getCount(),
+        this.followUpOrm.count(),
+        this.getRecentFollowUpAttempts(),
+      ]);
+
+    const completionRate =
+      total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return { open, overdue, completed, unassigned, completionRate, recentAttempts };
+  }
+
+  private async getRecentFollowUpAttempts() {
+    return this.followUpAttemptOrm
+      .createQueryBuilder('a')
+      .innerJoin(FollowUpEntity, 'f', 'f.id = a.task_id')
+      .innerJoin(MemberEntity, 'm', 'm.id = f.member_id')
+      .select('a.id', 'id')
+      .addSelect('a.task_id', 'taskId')
+      .addSelect('f.title', 'taskTitle')
+      .addSelect("m.first_name || ' ' || m.last_name", 'memberName')
+      .addSelect('a.contact_method', 'contactMethod')
+      .addSelect('a.outcome', 'outcome')
+      .addSelect('a.contacted_at', 'contactedAt')
+      .orderBy('a.contacted_at', 'DESC')
+      .limit(5)
+      .getRawMany<{
+        id: string;
+        taskId: string;
+        taskTitle: string;
+        memberName: string;
+        contactMethod: string;
+        outcome: string;
+        contactedAt: Date;
+      }>();
   }
 }
