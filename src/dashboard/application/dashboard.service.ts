@@ -164,9 +164,10 @@ export class DashboardService {
   private async getAttendanceStats() {
     const totalSessions = await this.sessionOrm.count();
 
-    const lastSession = await this.sessionOrm.findOne({
-      order: { sessionDate: 'DESC' },
-    });
+    const lastSession = await this.sessionOrm
+      .createQueryBuilder('s')
+      .orderBy('s.session_date', 'DESC')
+      .getOne();
 
     if (!lastSession) {
       return { totalSessions, lastSession: null };
@@ -252,7 +253,7 @@ export class DashboardService {
         this.itemOrm.count(),
         this.itemOrm
           .createQueryBuilder('i')
-          .where('i.quantity <= i.min_stock_level')
+          .where('i.available_qty < i.total_qty * 0.2')
           .getCount(),
         this.damageOrm.count({ where: { status: DamageStatus.PENDING } }),
       ],

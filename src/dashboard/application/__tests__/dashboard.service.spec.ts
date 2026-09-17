@@ -33,6 +33,7 @@ const makeQb = (terminal: Partial<Record<string, unknown>> = {}) => {
   }
   qb.getRawMany = jest.fn().mockResolvedValue(terminal.getRawMany ?? []);
   qb.getCount = jest.fn().mockResolvedValue(terminal.getCount ?? 0);
+  qb.getOne = jest.fn().mockResolvedValue(terminal.getOne ?? null);
   return qb;
 };
 
