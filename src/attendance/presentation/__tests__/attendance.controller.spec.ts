@@ -83,7 +83,7 @@ describe('AttendanceController', () => {
 
   it('GET /attendance/sessions/summary → 200, and is not swallowed by the :id route', async () => {
     mockService.getSessionsWithSummary.mockResolvedValue([
-      { ...mockSession, present: 42, absent: 3, excused: 1, adults: 30, children: 12, firstTimers: 5 },
+      { ...mockSession, present: 42, absent: 3, excused: 1, adults: 30, children: 12, firstTimers: 5, guests: 8, members: 34 },
     ]);
     const res = await request(app.getHttpServer())
       .get('/attendance/sessions/summary')

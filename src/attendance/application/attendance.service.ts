@@ -7,7 +7,7 @@ import { AttendanceSessionEntity } from '../infrastructure/attendance-session.en
 import { AttendanceRecordEntity } from '../infrastructure/attendance-record.entity';
 import { MemberEntity } from '../../members/infrastructure/member.entity';
 import { AttendanceStatus } from '../domain/attendance-record';
-import { MemberType, ChurchRole } from '../../members/domain/member';
+import { MemberType, ChurchRole, MemberStatus } from '../../members/domain/member';
 import type { SessionSummaryDto } from '../presentation/dto/session-summary.dto';
 import { CreateSessionUseCase } from '../domain/usecases/create-session.usecase';
 import { GetSessionsUseCase } from '../domain/usecases/get-sessions.usecase';
@@ -220,6 +220,14 @@ export class AttendanceService {
         `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.PRESENT}' AND m.church_role = '${ChurchRole.FIRST_TIME_VISITOR}')`,
         'firstTimers',
       )
+      .addSelect(
+        `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.PRESENT}' AND m.status = '${MemberStatus.GUEST}')`,
+        'guests',
+      )
+      .addSelect(
+        `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.PRESENT}' AND m.status != '${MemberStatus.GUEST}')`,
+        'members',
+      )
       .groupBy('s.id')
       .orderBy('s.session_date', 'DESC')
       .getRawMany<{
@@ -233,6 +241,8 @@ export class AttendanceService {
         adults: string;
         children: string;
         firstTimers: string;
+        guests: string;
+        members: string;
       }>();
 
     return rows.map((r) => ({
@@ -246,6 +256,8 @@ export class AttendanceService {
       adults: Number(r.adults),
       children: Number(r.children),
       firstTimers: Number(r.firstTimers),
+      guests: Number(r.guests),
+      members: Number(r.members),
     }));
   }
 }

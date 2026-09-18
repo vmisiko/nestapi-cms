@@ -11,4 +11,6 @@ export class SessionSummaryDto {
   @ApiProperty() adults: number;
   @ApiProperty() children: number;
   @ApiProperty() firstTimers: number;
+  @ApiProperty() guests: number;
+  @ApiProperty() members: number;
 }

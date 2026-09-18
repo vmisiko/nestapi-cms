@@ -177,6 +177,8 @@ describe('AttendanceService', () => {
             adults: '30',
             children: '12',
             firstTimers: '5',
+            guests: '8',
+            members: '34',
           },
         ]),
       );
@@ -195,6 +197,8 @@ describe('AttendanceService', () => {
           adults: 30,
           children: 12,
           firstTimers: 5,
+          guests: 8,
+          members: 34,
         },
       ]);
     });
