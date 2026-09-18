@@ -36,6 +36,7 @@ const mockRecord = {
 
 const mockService = {
   findAllSessions: jest.fn(),
+  getSessionsWithSummary: jest.fn(),
   findSessionById: jest.fn(),
   createSession: jest.fn(),
   updateSession: jest.fn(),
@@ -78,6 +79,18 @@ describe('AttendanceController', () => {
       .get('/attendance/sessions')
       .expect(200);
     expect(res.body).toHaveLength(1);
+  });
+
+  it('GET /attendance/sessions/summary → 200, and is not swallowed by the :id route', async () => {
+    mockService.getSessionsWithSummary.mockResolvedValue([
+      { ...mockSession, present: 42, absent: 3, excused: 1, adults: 30, children: 12, firstTimers: 5 },
+    ]);
+    const res = await request(app.getHttpServer())
+      .get('/attendance/sessions/summary')
+      .expect(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0].present).toBe(42);
+    expect(mockService.findSessionById).not.toHaveBeenCalled();
   });
 
   it('GET /attendance/sessions/:id → 200', async () => {

@@ -6,10 +6,15 @@ import { AttendanceSessionRepository } from './infrastructure/attendance-session
 import { AttendanceRecordRepository } from './infrastructure/attendance-record.repository';
 import { AttendanceService } from './application/attendance.service';
 import { AttendanceController } from './presentation/attendance.controller';
+import { MemberEntity } from '../members/infrastructure/member.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AttendanceSessionEntity, AttendanceRecordEntity]),
+    TypeOrmModule.forFeature([
+      AttendanceSessionEntity,
+      AttendanceRecordEntity,
+      MemberEntity,
+    ]),
   ],
   controllers: [AttendanceController],
   providers: [

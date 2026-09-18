@@ -1,12 +1,32 @@
 import { Test } from '@nestjs/testing';
 import { HttpException } from '@nestjs/common';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { AttendanceService } from '../attendance.service';
 import { AttendanceSessionRepository } from '../../infrastructure/attendance-session.repository';
 import { AttendanceRecordRepository } from '../../infrastructure/attendance-record.repository';
+import { AttendanceSessionEntity } from '../../infrastructure/attendance-session.entity';
 import { Either } from '../../../core/domain/either';
 import { DataError } from '../../../core/domain/data-error';
 import { SessionType } from '../../domain/attendance-session';
 import { AttendanceStatus } from '../../domain/attendance-record';
+
+// A minimal chainable query-builder mock: every method returns itself so
+// calls can be chained in any order, with a configurable terminal result.
+const makeQb = (rawMany: unknown[] = []) => {
+  const qb: Record<string, jest.Mock> = {};
+  const self = () => qb;
+  for (const method of [
+    'leftJoin',
+    'select',
+    'addSelect',
+    'groupBy',
+    'orderBy',
+  ]) {
+    qb[method] = jest.fn(self);
+  }
+  qb.getRawMany = jest.fn().mockResolvedValue(rawMany);
+  return qb;
+};
 
 const mockSessionRepo = {
   findAll: jest.fn(),
@@ -49,14 +69,17 @@ const mockRecord = {
 
 describe('AttendanceService', () => {
   let service: AttendanceService;
+  let sessionOrm: { createQueryBuilder: jest.Mock };
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    sessionOrm = { createQueryBuilder: jest.fn().mockReturnValue(makeQb()) };
     const module = await Test.createTestingModule({
       providers: [
         AttendanceService,
         { provide: AttendanceSessionRepository, useValue: mockSessionRepo },
         { provide: AttendanceRecordRepository, useValue: mockRecordRepo },
+        { provide: getRepositoryToken(AttendanceSessionEntity), useValue: sessionOrm },
       ],
     }).compile();
     service = module.get(AttendanceService);
@@ -136,6 +159,50 @@ describe('AttendanceService', () => {
       await expect(
         service.deleteSession('session-uuid'),
       ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('getSessionsWithSummary', () => {
+    it('maps raw aggregate rows into numeric counts', async () => {
+      sessionOrm.createQueryBuilder.mockReturnValue(
+        makeQb([
+          {
+            id: 'session-uuid',
+            title: 'Sunday Service',
+            sessionType: SessionType.SUNDAY_SERVICE,
+            sessionDate: new Date('2026-06-01'),
+            present: '42',
+            absent: '3',
+            excused: '1',
+            adults: '30',
+            children: '12',
+            firstTimers: '5',
+          },
+        ]),
+      );
+
+      const result = await service.getSessionsWithSummary();
+
+      expect(result).toEqual([
+        {
+          id: 'session-uuid',
+          title: 'Sunday Service',
+          sessionType: SessionType.SUNDAY_SERVICE,
+          sessionDate: new Date('2026-06-01'),
+          present: 42,
+          absent: 3,
+          excused: 1,
+          adults: 30,
+          children: 12,
+          firstTimers: 5,
+        },
+      ]);
+    });
+
+    it('returns an empty list when there are no sessions', async () => {
+      sessionOrm.createQueryBuilder.mockReturnValue(makeQb([]));
+      const result = await service.getSessionsWithSummary();
+      expect(result).toEqual([]);
     });
   });
 });
