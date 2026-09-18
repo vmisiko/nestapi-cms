@@ -23,6 +23,7 @@ import { UpdateSessionDto } from './dto/update-session.dto';
 import { RecordAttendanceDto } from './dto/record-attendance.dto';
 import { UpdateAttendanceRecordDto } from './dto/update-attendance-record.dto';
 import { SessionResponseDto } from './dto/session-response.dto';
+import { SessionSummaryDto } from './dto/session-summary.dto';
 import { AttendanceRecordResponseDto } from './dto/attendance-record-response.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -44,6 +45,16 @@ export class AttendanceController {
   async findAllSessions() {
     const sessions = await this.service.findAllSessions();
     return sessions.map((s) => new SessionResponseDto(s));
+  }
+
+  @ApiOperation({
+    summary:
+      'List all attendance sessions with present/absent/excused and adult/child/first-timer counts',
+  })
+  @ApiResponse({ status: 200, type: [SessionSummaryDto] })
+  @Get('sessions/summary')
+  async findAllSessionsSummary() {
+    return this.service.getSessionsWithSummary();
   }
 
   @ApiOperation({ summary: 'Get an attendance session by ID' })

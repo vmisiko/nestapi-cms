@@ -1,6 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { AttendanceSessionRepository } from '../infrastructure/attendance-session.repository';
 import { AttendanceRecordRepository } from '../infrastructure/attendance-record.repository';
+import { AttendanceSessionEntity } from '../infrastructure/attendance-session.entity';
+import { AttendanceRecordEntity } from '../infrastructure/attendance-record.entity';
+import { MemberEntity } from '../../members/infrastructure/member.entity';
+import { AttendanceStatus } from '../domain/attendance-record';
+import { MemberType, ChurchRole, MemberStatus } from '../../members/domain/member';
+import type { SessionSummaryDto } from '../presentation/dto/session-summary.dto';
 import { CreateSessionUseCase } from '../domain/usecases/create-session.usecase';
 import { GetSessionsUseCase } from '../domain/usecases/get-sessions.usecase';
 import { GetSessionByIdUseCase } from '../domain/usecases/get-session-by-id.usecase';
@@ -35,6 +43,8 @@ export class AttendanceService {
   constructor(
     readonly sessionRepo: AttendanceSessionRepository,
     readonly recordRepo: AttendanceRecordRepository,
+    @InjectRepository(AttendanceSessionEntity)
+    private readonly sessionOrm: Repository<AttendanceSessionEntity>,
   ) {
     this.getSessionsUseCase = new GetSessionsUseCase(sessionRepo);
     this.getSessionByIdUseCase = new GetSessionByIdUseCase(sessionRepo);
@@ -175,5 +185,79 @@ export class AttendanceService {
       },
       () => undefined,
     );
+  }
+
+  async getSessionsWithSummary(): Promise<SessionSummaryDto[]> {
+    const rows = await this.sessionOrm
+      .createQueryBuilder('s')
+      .leftJoin(AttendanceRecordEntity, 'r', 'r.session_id = s.id')
+      .leftJoin(MemberEntity, 'm', 'm.id = r.member_id')
+      .select('s.id', 'id')
+      .addSelect('s.title', 'title')
+      .addSelect('s.session_type', 'sessionType')
+      .addSelect('s.session_date', 'sessionDate')
+      .addSelect(
+        `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.PRESENT}')`,
+        'present',
+      )
+      .addSelect(
+        `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.ABSENT}')`,
+        'absent',
+      )
+      .addSelect(
+        `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.EXCUSED}')`,
+        'excused',
+      )
+      .addSelect(
+        `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.PRESENT}' AND m.member_type = '${MemberType.ADULT}')`,
+        'adults',
+      )
+      .addSelect(
+        `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.PRESENT}' AND m.member_type = '${MemberType.CHILD}')`,
+        'children',
+      )
+      .addSelect(
+        `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.PRESENT}' AND m.church_role = '${ChurchRole.FIRST_TIME_VISITOR}')`,
+        'firstTimers',
+      )
+      .addSelect(
+        `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.PRESENT}' AND m.status = '${MemberStatus.GUEST}')`,
+        'guests',
+      )
+      .addSelect(
+        `COUNT(r.id) FILTER (WHERE r.status = '${AttendanceStatus.PRESENT}' AND m.status != '${MemberStatus.GUEST}')`,
+        'members',
+      )
+      .groupBy('s.id')
+      .orderBy('s.session_date', 'DESC')
+      .getRawMany<{
+        id: string;
+        title: string;
+        sessionType: string;
+        sessionDate: Date;
+        present: string;
+        absent: string;
+        excused: string;
+        adults: string;
+        children: string;
+        firstTimers: string;
+        guests: string;
+        members: string;
+      }>();
+
+    return rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      sessionType: r.sessionType,
+      sessionDate: r.sessionDate,
+      present: Number(r.present),
+      absent: Number(r.absent),
+      excused: Number(r.excused),
+      adults: Number(r.adults),
+      children: Number(r.children),
+      firstTimers: Number(r.firstTimers),
+      guests: Number(r.guests),
+      members: Number(r.members),
+    }));
   }
 }
