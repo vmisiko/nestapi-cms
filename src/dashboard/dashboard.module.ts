@@ -9,6 +9,8 @@ import { MessageEntity } from '../messaging/infrastructure/message.entity';
 import { MessageDeliveryEntity } from '../messaging/infrastructure/message-delivery.entity';
 import { InventoryItemEntity } from '../inventory/infrastructure/inventory-item.entity';
 import { DamageReportEntity } from '../inventory/infrastructure/damage-report.entity';
+import { FollowUpEntity } from '../follow-ups/infrastructure/follow-up.entity';
+import { FollowUpAttemptEntity } from '../follow-ups/infrastructure/follow-up-attempt.entity';
 import { DashboardService } from './application/dashboard.service';
 import { DashboardController } from './presentation/dashboard.controller';
 
@@ -24,6 +26,8 @@ import { DashboardController } from './presentation/dashboard.controller';
       MessageDeliveryEntity,
       InventoryItemEntity,
       DamageReportEntity,
+      FollowUpEntity,
+      FollowUpAttemptEntity,
     ]),
   ],
   controllers: [DashboardController],

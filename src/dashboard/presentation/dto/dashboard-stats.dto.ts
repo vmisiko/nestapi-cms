@@ -15,6 +15,7 @@ class MemberStats {
   @ApiProperty() total: number;
   @ApiProperty() active: number;
   @ApiProperty() inactive: number;
+  @ApiProperty() firstTimeVisitors: number;
   @ApiProperty({ type: MemberStatusBreakdown }) byStatus: MemberStatusBreakdown;
   @ApiProperty({ type: MemberTypeBreakdown }) byType: MemberTypeBreakdown;
 }
@@ -60,6 +61,26 @@ class InventoryStats {
   @ApiProperty() pendingDamageReports: number;
 }
 
+class RecentFollowUpAttempt {
+  @ApiProperty() id: string;
+  @ApiProperty() taskId: string;
+  @ApiProperty() taskTitle: string;
+  @ApiProperty() memberName: string;
+  @ApiProperty() contactMethod: string;
+  @ApiProperty() outcome: string;
+  @ApiProperty() contactedAt: Date;
+}
+
+class FollowUpStats {
+  @ApiProperty() open: number;
+  @ApiProperty() overdue: number;
+  @ApiProperty() completed: number;
+  @ApiProperty() unassigned: number;
+  @ApiProperty() completionRate: number;
+  @ApiProperty({ type: [RecentFollowUpAttempt] })
+  recentAttempts: RecentFollowUpAttempt[];
+}
+
 export class DashboardStatsDto {
   @ApiProperty({ type: MemberStats }) members: MemberStats;
   @ApiProperty({ type: FellowshipStats }) fellowships: FellowshipStats;
@@ -67,4 +88,5 @@ export class DashboardStatsDto {
   @ApiProperty({ type: AttendanceStats }) attendance: AttendanceStats;
   @ApiProperty({ type: MessagingStats }) messaging: MessagingStats;
   @ApiProperty({ type: InventoryStats }) inventory: InventoryStats;
+  @ApiProperty({ type: FollowUpStats }) followUps: FollowUpStats;
 }
