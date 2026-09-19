@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { MembersService } from '../members.service';
 import { MemberRepository } from '../../infrastructure/member.repository';
+import { VisitorAutomationService } from '../../../automation/application/visitor-automation.service';
 import { Either } from '../../../core/domain/either';
 import { DataError } from '../../../core/domain/data-error';
 import {
@@ -35,6 +36,10 @@ describe('MembersService', () => {
       providers: [
         MembersService,
         { provide: MemberRepository, useValue: repo },
+        {
+          provide: VisitorAutomationService,
+          useValue: { handleNewMember: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 

@@ -1,13 +1,5 @@
-import {
-  IsDateString,
-  IsEnum,
-  IsOptional,
-  IsString,
-} from 'class-validator';
-import {
-  FollowUpContactMethod,
-  FollowUpOutcome,
-} from '../../domain/follow-up';
+import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
+import { FollowUpContactMethod, FollowUpOutcome } from '../../domain/follow-up';
 
 export class RecordFollowUpAttemptDto {
   @IsEnum(FollowUpContactMethod)

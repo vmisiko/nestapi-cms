@@ -20,6 +20,7 @@ import type {
   BulkPreviewResponse,
 } from '../domain/i-member.repository';
 import { toHttpException } from '../../core/application/http-exception.util';
+import { VisitorAutomationService } from '../../automation/application/visitor-automation.service';
 
 @Injectable()
 export class MembersService {
@@ -33,7 +34,10 @@ export class MembersService {
   private readonly bulkImportUseCase: BulkImportMembersUseCase;
   private readonly previewBulkImportUseCase: PreviewBulkImportUseCase;
 
-  constructor(readonly repo: MemberRepository) {
+  constructor(
+    readonly repo: MemberRepository,
+    private readonly visitorAutomation: VisitorAutomationService,
+  ) {
     this.getAll = new GetMembersUseCase(repo);
     this.getById = new GetMemberByIdUseCase(repo);
     this.createUseCase = new CreateMemberUseCase(repo);
@@ -70,12 +74,14 @@ export class MembersService {
 
   async create(dto: CreateMemberDto): Promise<Member> {
     const result = await this.createUseCase.execute(dto);
-    return result.fold(
+    const member = result.fold(
       (err) => {
         throw toHttpException(err.kind, err.message);
       },
       (m) => m,
     );
+    await this.visitorAutomation.handleNewMember(member).catch(() => undefined);
+    return member;
   }
 
   async update(id: string, dto: UpdateMemberDto): Promise<Member> {

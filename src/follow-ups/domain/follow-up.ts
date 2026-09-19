@@ -4,6 +4,12 @@ export enum FollowUpStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum FollowUpSource {
+  MANUAL = 'manual',
+  VISITOR_AUTOMATION = 'visitor_automation',
+  INACTIVITY_AUTOMATION = 'inactivity_automation',
+}
+
 export enum FollowUpContactMethod {
   CALL = 'call',
   SMS = 'sms',
@@ -29,9 +35,22 @@ export interface FollowUpTask {
   notes: string | null;
   dueDate: string;
   status: FollowUpStatus;
+  source: FollowUpSource;
+  escalationLevel: number;
+  escalatedAt: Date | null;
+  escalatedToId: string | null;
   completedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface FollowUpEscalation {
+  id: string;
+  taskId: string;
+  fromOwnerId: string | null;
+  toOwnerId: string;
+  reason: string;
+  escalatedAt: Date;
 }
 
 export interface FollowUpAttempt {
