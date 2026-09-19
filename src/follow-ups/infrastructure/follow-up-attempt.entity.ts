@@ -7,10 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserEntity } from '../../users/infrastructure/user.entity';
-import {
-  FollowUpContactMethod,
-  FollowUpOutcome,
-} from '../domain/follow-up';
+import { FollowUpContactMethod, FollowUpOutcome } from '../domain/follow-up';
 import { FollowUpEntity } from './follow-up.entity';
 
 @Entity('follow_up_attempts')

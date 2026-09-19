@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { MemberEntity } from '../../members/infrastructure/member.entity';
 import { UserEntity } from '../../users/infrastructure/user.entity';
-import { FollowUpStatus } from '../domain/follow-up';
+import { FollowUpSource, FollowUpStatus } from '../domain/follow-up';
 
 @Entity('follow_up_tasks')
 export class FollowUpEntity {
@@ -46,6 +46,27 @@ export class FollowUpEntity {
     default: FollowUpStatus.OPEN,
   })
   status: FollowUpStatus;
+
+  @Column({
+    type: 'enum',
+    enum: FollowUpSource,
+    enumName: 'follow_up_source',
+    default: FollowUpSource.MANUAL,
+  })
+  source: FollowUpSource;
+
+  @Column({ name: 'escalation_level', type: 'int', default: 0 })
+  escalationLevel: number;
+
+  @Column({ name: 'escalated_at', type: 'timestamptz', nullable: true })
+  escalatedAt: Date | null;
+
+  @Column({ name: 'escalated_to_id', type: 'uuid', nullable: true })
+  escalatedToId: string | null;
+
+  @ManyToOne(() => UserEntity, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'escalated_to_id' })
+  escalatedTo: UserEntity | null;
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
   completedAt: Date | null;

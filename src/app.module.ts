@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -14,10 +15,13 @@ import { MessagingModule } from './messaging/messaging.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { FollowUpsModule } from './follow-ups/follow-ups.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { AutomationModule } from './automation/automation.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -39,6 +43,8 @@ import { FollowUpsModule } from './follow-ups/follow-ups.module';
     InventoryModule,
     DashboardModule,
     FollowUpsModule,
+    NotificationsModule,
+    AutomationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

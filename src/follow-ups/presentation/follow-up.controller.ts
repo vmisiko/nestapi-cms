@@ -10,11 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { FollowUpService } from '../application/follow-up.service';
@@ -33,10 +29,7 @@ export class FollowUpController {
   @Get()
   @ApiOperation({ summary: 'List follow-up tasks, optionally by status' })
   findAll(
-    @Query(
-      'status',
-      new ParseEnumPipe(FollowUpStatus, { optional: true }),
-    )
+    @Query('status', new ParseEnumPipe(FollowUpStatus, { optional: true }))
     status?: FollowUpStatus,
   ) {
     return this.service.findAll(status);
@@ -71,5 +64,11 @@ export class FollowUpController {
     @CurrentUser('sub') userId?: string,
   ) {
     return this.service.recordAttempt(id, dto, userId);
+  }
+
+  @Get(':id/escalations')
+  @ApiOperation({ summary: 'Get the escalation history for a follow-up task' })
+  findEscalations(@Param('id', ParseUUIDPipe) id: string) {
+    return this.service.findEscalations(id);
   }
 }
