@@ -17,6 +17,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { FollowUpsModule } from './follow-ups/follow-ups.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AutomationModule } from './automation/automation.module';
+import { RetentionModule } from './retention/retention.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { AutomationModule } from './automation/automation.module';
     FollowUpsModule,
     NotificationsModule,
     AutomationModule,
+    RetentionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
