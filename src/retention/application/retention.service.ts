@@ -233,7 +233,7 @@ export class RetentionService {
       ),
     ]);
 
-    return { data: rows, total: countRows[0]?.count ?? 0, page, limit };
+    return { members: rows, total: countRows[0]?.count ?? 0, page, limit };
   }
 
   private async getDepartmentBreakdown(departmentId: string) {

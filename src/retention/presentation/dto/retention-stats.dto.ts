@@ -75,7 +75,7 @@ export class AtRiskMemberDto {
 }
 
 export class AtRiskMembersResponseDto {
-  @ApiProperty({ type: [AtRiskMemberDto] }) data: AtRiskMemberDto[];
+  @ApiProperty({ type: [AtRiskMemberDto] }) members: AtRiskMemberDto[];
   @ApiProperty() total: number;
   @ApiProperty() page: number;
   @ApiProperty() limit: number;

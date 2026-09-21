@@ -153,7 +153,7 @@ describe('RetentionService', () => {
       const result = await service.getAtRiskMembers(1, 20);
 
       expect(result).toEqual({
-        data: [
+        members: [
           { id: 'm1', firstName: 'Jane', lastName: 'Doe', reason: 'inactive' },
         ],
         total: 1,
@@ -170,7 +170,7 @@ describe('RetentionService', () => {
 
       const result = await service.getAtRiskMembers();
 
-      expect(result.data).toEqual([]);
+      expect(result.members).toEqual([]);
       expect(result.total).toBe(0);
     });
   });
