@@ -25,7 +25,10 @@ const makeQb = (terminal: Partial<Record<string, unknown>> = {}) => {
     'andWhere',
     'groupBy',
     'orderBy',
+    'addOrderBy',
     'innerJoin',
+    'leftJoin',
+    'having',
     'limit',
     'setParameter',
   ]) {
@@ -51,8 +54,16 @@ describe('DashboardService', () => {
     count: jest.fn().mockResolvedValue(0),
     findOne: jest.fn().mockResolvedValue(null),
   });
+  let fellowshipOrm: ReturnType<typeof emptyRepo>;
+  let departmentOrm: ReturnType<typeof emptyRepo>;
+  let messageOrm: ReturnType<typeof emptyRepo>;
+  let deliveryOrm: ReturnType<typeof emptyRepo>;
 
   beforeEach(async () => {
+    fellowshipOrm = emptyRepo();
+    departmentOrm = emptyRepo();
+    messageOrm = emptyRepo();
+    deliveryOrm = emptyRepo();
     memberOrm = { createQueryBuilder: jest.fn(), count: jest.fn() };
     followUpOrm = { createQueryBuilder: jest.fn(), count: jest.fn() };
     followUpAttemptOrm = { createQueryBuilder: jest.fn() };
@@ -73,11 +84,11 @@ describe('DashboardService', () => {
         { provide: getRepositoryToken(MemberEntity), useValue: memberOrm },
         {
           provide: getRepositoryToken(FellowshipEntity),
-          useValue: emptyRepo(),
+          useValue: fellowshipOrm,
         },
         {
           provide: getRepositoryToken(DepartmentEntity),
-          useValue: emptyRepo(),
+          useValue: departmentOrm,
         },
         {
           provide: getRepositoryToken(AttendanceSessionEntity),
@@ -87,10 +98,10 @@ describe('DashboardService', () => {
           provide: getRepositoryToken(AttendanceRecordEntity),
           useValue: emptyRepo(),
         },
-        { provide: getRepositoryToken(MessageEntity), useValue: emptyRepo() },
+        { provide: getRepositoryToken(MessageEntity), useValue: messageOrm },
         {
           provide: getRepositoryToken(MessageDeliveryEntity),
-          useValue: emptyRepo(),
+          useValue: deliveryOrm,
         },
         {
           provide: getRepositoryToken(InventoryItemEntity),
@@ -122,6 +133,26 @@ describe('DashboardService', () => {
       expect(stats).toHaveProperty('messaging');
       expect(stats).toHaveProperty('inventory');
       expect(stats).toHaveProperty('followUps');
+      expect(stats).toHaveProperty('attention');
+    });
+
+    it('returns empty, well-formed widget data when the database is empty', async () => {
+      const stats = await service.getStats();
+
+      expect(stats.members.byAgeGroup).toEqual({});
+      expect(stats.members.byGender).toEqual({
+        male: 0,
+        female: 0,
+        unspecified: 0,
+      });
+      expect(stats.fellowships.zones).toEqual([]);
+      expect(stats.messaging.recent).toEqual([]);
+      expect(stats.attention).toEqual({
+        lowStock: [],
+        pendingDamage: [],
+        fellowshipsWithoutLeader: [],
+        departmentsBelowTarget: [],
+      });
     });
   });
 
@@ -145,6 +176,189 @@ describe('DashboardService', () => {
 
       expect(stats.members.total).toBe(4);
       expect(stats.members.firstTimeVisitors).toBe(3);
+    });
+  });
+
+  describe('member demographics', () => {
+    it('breaks members down by age group and gender and counts online and international', async () => {
+      memberOrm.createQueryBuilder.mockReturnValue(
+        makeQb({
+          getRawMany: [
+            {
+              activityStatus: 'active',
+              status: 'member',
+              memberType: 'adult',
+              ageGroup: '26_35',
+              gender: 'Female',
+              isOnline: true,
+              isInternational: false,
+              count: '3',
+            },
+            {
+              activityStatus: 'active',
+              status: 'guest',
+              memberType: 'adult',
+              ageGroup: null,
+              gender: null,
+              isOnline: false,
+              isInternational: true,
+              count: '2',
+            },
+          ],
+        }),
+      );
+
+      const stats = await service.getStats();
+
+      expect(stats.members.byAgeGroup).toEqual({ '26_35': 3, unknown: 2 });
+      expect(stats.members.byGender).toEqual({
+        male: 0,
+        female: 3,
+        unspecified: 2,
+      });
+      expect(stats.members.online).toBe(3);
+      expect(stats.members.international).toBe(2);
+    });
+  });
+
+  describe('messaging stats', () => {
+    it('splits deliveries by status and reports the delivery rate of recent messages', async () => {
+      // messageOrm is queried twice, in order: message status counts, then the recent list.
+      messageOrm.createQueryBuilder
+        .mockReturnValueOnce(
+          makeQb({ getRawMany: [{ status: 'sent', count: '2' }] }),
+        )
+        .mockReturnValueOnce(
+          makeQb({
+            getRawMany: [
+              {
+                id: 'm1',
+                title: 'Sunday reminder',
+                type: 'reminder',
+                targetGroup: 'all',
+                sentAt: new Date('2026-09-14T08:00:00Z'),
+                total: '10',
+                delivered: '9',
+              },
+              {
+                id: 'm2',
+                title: 'Draft with no deliveries',
+                type: 'alert',
+                targetGroup: 'zone',
+                sentAt: null,
+                total: '0',
+                delivered: '0',
+              },
+            ],
+          }),
+        );
+      deliveryOrm.createQueryBuilder.mockReturnValue(
+        makeQb({
+          getRawMany: [
+            { status: 'delivered', count: '8' },
+            { status: 'sent', count: '1' },
+            { status: 'pending', count: '2' },
+            { status: 'failed', count: '1' },
+          ],
+        }),
+      );
+
+      const stats = await service.getStats();
+
+      expect(stats.messaging).toMatchObject({
+        sent: 2,
+        totalDeliveries: 12,
+        delivered: 8,
+        sentDeliveries: 1,
+        pendingDeliveries: 2,
+        failedDeliveries: 1,
+      });
+      expect(stats.messaging.recent.map((m) => m.deliveryRate)).toEqual([
+        90, 0,
+      ]);
+      expect(stats.messaging.recent[0]).toMatchObject({
+        id: 'm1',
+        title: 'Sunday reminder',
+        type: 'reminder',
+        targetGroup: 'all',
+      });
+    });
+  });
+
+  describe('fellowship zones and attention lists', () => {
+    it('rolls fellowships up per zone with numeric counts and meeting days', async () => {
+      // fellowshipOrm is queried in order: status counts, zone rollup, fellowships without a leader.
+      fellowshipOrm.createQueryBuilder
+        .mockReturnValueOnce(
+          makeQb({ getRawMany: [{ status: 'active', count: '3' }] }),
+        )
+        .mockReturnValueOnce(
+          makeQb({
+            getRawMany: [
+              {
+                id: 'z1',
+                name: 'Central',
+                fellowshipCount: '3',
+                activeFellowships: '2',
+                memberCount: '40',
+                meetingDays: ['Friday', 'Wednesday'],
+              },
+              {
+                id: 'z2',
+                name: 'Eastlands',
+                fellowshipCount: '1',
+                activeFellowships: '1',
+                memberCount: '0',
+                meetingDays: null,
+              },
+            ],
+          }),
+        )
+        .mockReturnValueOnce(
+          makeQb({
+            getRawMany: [{ id: 'f9', name: "Lang'ata", zoneName: 'Central' }],
+          }),
+        );
+
+      const stats = await service.getStats();
+
+      expect(stats.fellowships.zones).toEqual([
+        {
+          id: 'z1',
+          name: 'Central',
+          fellowshipCount: 3,
+          activeFellowships: 2,
+          memberCount: 40,
+          meetingDays: ['Friday', 'Wednesday'],
+        },
+        {
+          id: 'z2',
+          name: 'Eastlands',
+          fellowshipCount: 1,
+          activeFellowships: 1,
+          memberCount: 0,
+          meetingDays: [],
+        },
+      ]);
+      expect(stats.attention.fellowshipsWithoutLeader).toEqual([
+        { id: 'f9', name: "Lang'ata", zoneName: 'Central' },
+      ]);
+    });
+
+    it('lists departments below their member target with numeric counts', async () => {
+      departmentOrm.createQueryBuilder.mockReturnValue(
+        makeQb({
+          getRawMany: [
+            { id: 'd1', name: 'Media', target: 30, memberCount: '14' },
+          ],
+        }),
+      );
+
+      const stats = await service.getStats();
+
+      expect(stats.attention.departmentsBelowTarget).toEqual([
+        { id: 'd1', name: 'Media', target: 30, memberCount: 14 },
+      ]);
     });
   });
 
