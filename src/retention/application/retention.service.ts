@@ -220,7 +220,7 @@ export class RetentionService {
            m.last_name AS "lastName",
            m.status,
            m.activity_status AS "activityStatus",
-           m.joined_at AS "joinedAt",
+           TO_CHAR(m.joined_at, 'YYYY-MM-DD') AS "joinedAt",
            CASE WHEN m.activity_status = '${ActivityStatus.INACTIVE}' THEN 'inactive' ELSE 'stale_guest' END AS "reason"
          FROM members m
          WHERE ${whereSql}
