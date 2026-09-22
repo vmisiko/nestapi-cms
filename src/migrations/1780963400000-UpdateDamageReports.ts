@@ -2,10 +2,23 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class UpdateDamageReports1780963400000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Drop old PostgreSQL enum used by the status column (if it exists)
+    // Drop old PostgreSQL enum used by the status column (if it exists).
+    // The column's DEFAULT 'pending' is itself typed as the enum, and changing the column
+    // type does not strip that — Postgres just wraps it in an extra cast — so the enum stays
+    // referenced and DROP TYPE fails. Drop the default first, convert, then reinstate it as text.
+    await queryRunner.query(`
+      ALTER TABLE "damage_reports"
+        ALTER COLUMN "status" DROP DEFAULT
+    `);
+
     await queryRunner.query(`
       ALTER TABLE "damage_reports"
         ALTER COLUMN "status" TYPE varchar(30) USING status::text
+    `);
+
+    await queryRunner.query(`
+      ALTER TABLE "damage_reports"
+        ALTER COLUMN "status" SET DEFAULT 'pending'
     `);
 
     await queryRunner.query(`DROP TYPE IF EXISTS "damage_report_status"`);
@@ -52,6 +65,13 @@ export class UpdateDamageReports1780963400000 implements MigrationInterface {
       CREATE TYPE "damage_report_status" AS ENUM ('pending', 'reviewed', 'resolved')
     `);
 
+    // Same reasoning as up(): the varchar default must go before changing the column's type,
+    // or the new enum type ends up referenced by an expression Postgres won't let us drop later.
+    await queryRunner.query(`
+      ALTER TABLE "damage_reports"
+        ALTER COLUMN "status" DROP DEFAULT
+    `);
+
     await queryRunner.query(`
       ALTER TABLE "damage_reports"
         ADD COLUMN "quantity_damaged" integer NOT NULL DEFAULT 0,
@@ -62,6 +82,11 @@ export class UpdateDamageReports1780963400000 implements MigrationInterface {
             WHEN 'resolved'  THEN 'resolved'::"damage_report_status"
             ELSE             'pending'::"damage_report_status"
           END
+    `);
+
+    await queryRunner.query(`
+      ALTER TABLE "damage_reports"
+        ALTER COLUMN "status" SET DEFAULT 'pending'::"damage_report_status"
     `);
   }
 }
