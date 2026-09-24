@@ -57,6 +57,12 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and push to `main`: lint, build, and the unit test suite.
+
+**Known baseline as of 2026-09-24** (tracked as backlog item B3 in the frontend repo's `docs/PENDING-WORK.md`): 10 of 52 test suites (23 of 481 tests) currently fail, mostly outdated mocks after `IMemberRepository` gained `previewBulkImport`. The `test` job runs the real suite and reports failures but is not yet a blocking check (`continue-on-error: true`) — it will be made blocking once B3 brings the suite to green.
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
