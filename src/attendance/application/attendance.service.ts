@@ -7,7 +7,11 @@ import { AttendanceSessionEntity } from '../infrastructure/attendance-session.en
 import { AttendanceRecordEntity } from '../infrastructure/attendance-record.entity';
 import { MemberEntity } from '../../members/infrastructure/member.entity';
 import { AttendanceStatus } from '../domain/attendance-record';
-import { MemberType, ChurchRole, MemberStatus } from '../../members/domain/member';
+import {
+  MemberType,
+  ChurchRole,
+  MemberStatus,
+} from '../../members/domain/member';
 import type { SessionSummaryDto } from '../presentation/dto/session-summary.dto';
 import { CreateSessionUseCase } from '../domain/usecases/create-session.usecase';
 import { GetSessionsUseCase } from '../domain/usecases/get-sessions.usecase';
