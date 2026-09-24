@@ -12,6 +12,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../users/domain/user';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { FollowUpService } from '../application/follow-up.service';
 import { FollowUpStatus } from '../domain/follow-up';
@@ -22,11 +25,12 @@ import { RecordFollowUpAttemptDto } from './dto/record-follow-up-attempt.dto';
 @ApiTags('Follow-ups')
 @ApiBearerAuth()
 @Controller('follow-ups')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class FollowUpController {
   constructor(private readonly service: FollowUpService) {}
 
   @Get()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'List follow-up tasks, optionally by status' })
   findAll(
     @Query('status', new ParseEnumPipe(FollowUpStatus, { optional: true }))
@@ -36,18 +40,21 @@ export class FollowUpController {
   }
 
   @Get(':id')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Get a follow-up task and its contact attempts' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findById(id);
   }
 
   @Post()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Create a follow-up task' })
   create(@Body() dto: CreateFollowUpDto) {
     return this.service.create(dto);
   }
 
   @Patch(':id')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Update a follow-up task or its status' })
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -57,6 +64,7 @@ export class FollowUpController {
   }
 
   @Post(':id/attempts')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Record a contact attempt for a follow-up task' })
   recordAttempt(
     @Param('id', ParseUUIDPipe) id: string,
@@ -67,6 +75,7 @@ export class FollowUpController {
   }
 
   @Get(':id/escalations')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({ summary: 'Get the escalation history for a follow-up task' })
   findEscalations(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findEscalations(id);

@@ -1,6 +1,9 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../users/domain/user';
 import { RetentionService } from '../application/retention.service';
 import {
   RetentionQueryDto,
@@ -10,11 +13,12 @@ import {
 @ApiTags('Retention')
 @ApiBearerAuth()
 @Controller('retention')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class RetentionController {
   constructor(private readonly service: RetentionService) {}
 
   @Get('stats')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({
     summary: 'Retention, guest conversion, and follow-up completion metrics',
   })
@@ -23,6 +27,7 @@ export class RetentionController {
   }
 
   @Get('at-risk-members')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
   @ApiOperation({
     summary: 'Paginated list of inactive or stale-guest members',
   })
