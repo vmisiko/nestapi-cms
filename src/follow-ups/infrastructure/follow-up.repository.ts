@@ -25,12 +25,16 @@ export class FollowUpRepository {
   findAll(status?: FollowUpStatus): Promise<FollowUpEntity[]> {
     return this.tasks.find({
       where: status ? { status } : undefined,
+      // The frontend list shows the member's name inline; join it here instead of
+      // relying on its own separately-fetched, page-capped member list, which silently
+      // showed "Unknown member" once the congregation passed that page size.
+      relations: { member: true },
       order: { dueDate: 'ASC', createdAt: 'ASC' },
     });
   }
 
   findById(id: string): Promise<FollowUpEntity | null> {
-    return this.tasks.findOne({ where: { id } });
+    return this.tasks.findOne({ where: { id }, relations: { member: true } });
   }
 
   async create(data: {
