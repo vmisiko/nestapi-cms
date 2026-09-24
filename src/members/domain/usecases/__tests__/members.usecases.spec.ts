@@ -22,6 +22,7 @@ const makeRepo = (): jest.Mocked<IMemberRepository> => ({
   assignDepartment: jest.fn(),
   removeDepartment: jest.fn(),
   bulkImport: jest.fn(),
+  previewBulkImport: jest.fn(),
 });
 
 // ---------------------------------------------------------------------------

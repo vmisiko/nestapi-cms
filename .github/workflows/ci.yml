@@ -30,15 +30,11 @@ jobs:
         run: npm run build
 
   test:
-    name: "test (known-failing, not blocking)"
+    name: test
     runs-on: ubuntu-latest
-    # Known baseline as of 2026-09-24: 10 of 52 test suites (23 of 481 tests)
-    # fail, tracked as backlog item B3 in docs/PENDING-WORK.md — mostly
-    # outdated mocks (e.g. IMemberRepository gained `previewBulkImport` and
-    # existing mocks weren't updated). This job runs the real suite and
-    # reports it, but does not block merges until B3 brings it to green — at
-    # that point, drop `continue-on-error` here.
-    continue-on-error: true
+    # B3 (docs/PENDING-WORK.md) brought the suite to green on 2026-09-24:
+    # 54/54 suites, 579/579 tests. No longer continue-on-error — a real
+    # regression should block merges.
     steps:
       - uses: actions/checkout@v4
 

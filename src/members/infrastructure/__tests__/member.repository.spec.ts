@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { MemberRepository } from '../member.repository';
 import { MemberEntity } from '../member.entity';
+import { FellowshipEntity } from '../../../fellowships/infrastructure/fellowship.entity';
 import { makeMember, ID1, ID2 } from '../../../test/fixtures';
 
 const makeMemberEntity = (): MemberEntity => {
@@ -18,9 +19,10 @@ const makeQb = (entities: MemberEntity[], total: number = entities.length) => {
   qb.orderBy = chain();
   qb.andWhere = chain();
   qb.innerJoin = chain();
-  qb.skip = chain();
-  qb.take = chain();
-  qb.getManyAndCount = jest.fn().mockResolvedValue([entities, total]);
+  qb.offset = chain();
+  qb.limit = chain();
+  qb.getCount = jest.fn().mockResolvedValue(total);
+  qb.getMany = jest.fn().mockResolvedValue(entities);
 
   return qb;
 };
@@ -59,6 +61,10 @@ describe('MemberRepository', () => {
       providers: [
         MemberRepository,
         { provide: getRepositoryToken(MemberEntity), useValue: orm },
+        {
+          provide: getRepositoryToken(FellowshipEntity),
+          useValue: { find: jest.fn() },
+        },
       ],
     }).compile();
 
