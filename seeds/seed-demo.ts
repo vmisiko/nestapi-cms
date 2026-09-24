@@ -23,7 +23,7 @@ import { AppDataSource } from '../src/data-source';
 
 dotenv.config();
 
-type Query = (sql: string, params?: unknown[]) => Promise<any[]>; // eslint-disable-line @typescript-eslint/no-explicit-any
+type Query = (sql: string, params?: unknown[]) => Promise<any[]>;
 
 const MARKER = 'demo-seed';
 const EMAIL_DOMAIN = 'demo.example';
@@ -272,13 +272,13 @@ interface DemoMember {
 }
 
 async function seed(q: Query) {
-  const [admin] = await q(`SELECT id FROM users WHERE email = $1`, [
+  const [admin] = (await q(`SELECT id FROM users WHERE email = $1`, [
     process.env.ADMIN_EMAIL ?? 'admin@citymega.org',
-  ]);
+  ])) as Array<{ id: string }>;
   if (!admin) {
     throw new Error('No admin user found. Run `npm run seed:admin` first.');
   }
-  const adminId = admin.id as string;
+  const adminId = admin.id;
 
   // ---- zones and fellowships
   const zoneIds = new Map<string, string>();
@@ -986,9 +986,9 @@ async function main() {
   try {
     const summary = await AppDataSource.transaction(async (manager) => {
       const q: Query = (sql, params) => manager.query(sql, params);
-      const [{ n }] = await q(
+      const [{ n }] = (await q(
         `SELECT count(*)::int AS n FROM members WHERE email LIKE '%@${EMAIL_DOMAIN}'`,
-      );
+      )) as Array<{ n: number }>;
       if (n > 0 && !args.includes('--reset')) {
         console.log(
           `Demo data already present (${n} demo members). Use --reset to rebuild it.`,

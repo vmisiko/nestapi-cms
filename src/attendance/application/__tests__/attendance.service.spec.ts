@@ -79,7 +79,10 @@ describe('AttendanceService', () => {
         AttendanceService,
         { provide: AttendanceSessionRepository, useValue: mockSessionRepo },
         { provide: AttendanceRecordRepository, useValue: mockRecordRepo },
-        { provide: getRepositoryToken(AttendanceSessionEntity), useValue: sessionOrm },
+        {
+          provide: getRepositoryToken(AttendanceSessionEntity),
+          useValue: sessionOrm,
+        },
       ],
     }).compile();
     service = module.get(AttendanceService);
