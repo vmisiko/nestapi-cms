@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { DepartmentRepository } from '../department.repository';
 import { DepartmentEntity } from '../department.entity';
 import { makeDepartment } from '../../../test/fixtures';
@@ -9,6 +9,25 @@ const makeEntity = (): DepartmentEntity => {
   const e = new DepartmentEntity();
   Object.assign(e, makeDepartment());
   return e;
+};
+
+// findAll/findById now run a query-builder join for memberCount instead of
+// plain find/findOne — see department.repository.ts.
+const makeQb = (
+  entities: DepartmentEntity[],
+  raw: Array<{ memberCount?: number }> = entities.map(() => ({
+    memberCount: 0,
+  })),
+) => {
+  const qb: Record<string, jest.Mock> = {};
+  const chain = () => jest.fn().mockReturnValue(qb);
+  qb.leftJoin = chain();
+  qb.addSelect = chain();
+  qb.where = chain();
+  qb.groupBy = chain();
+  qb.orderBy = chain();
+  qb.getRawAndEntities = jest.fn().mockResolvedValue({ entities, raw });
+  return qb as unknown as SelectQueryBuilder<DepartmentEntity>;
 };
 
 describe('DepartmentRepository', () => {
@@ -28,6 +47,7 @@ describe('DepartmentRepository', () => {
             save: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
+            createQueryBuilder: jest.fn(),
           },
         },
       ],
@@ -39,7 +59,7 @@ describe('DepartmentRepository', () => {
 
   describe('findAll', () => {
     it('returns departments on success', async () => {
-      orm.find.mockResolvedValue([makeEntity()]);
+      orm.createQueryBuilder.mockReturnValue(makeQb([makeEntity()]));
 
       const result = await repository.findAll();
 
@@ -48,7 +68,9 @@ describe('DepartmentRepository', () => {
     });
 
     it('returns NetworkError when ORM throws', async () => {
-      orm.find.mockRejectedValue(new Error('connection lost'));
+      orm.createQueryBuilder.mockImplementation(() => {
+        throw new Error('connection lost');
+      });
 
       const result = await repository.findAll();
 
@@ -65,7 +87,7 @@ describe('DepartmentRepository', () => {
   describe('findById', () => {
     it('returns department when found', async () => {
       const entity = makeEntity();
-      orm.findOne.mockResolvedValue(entity);
+      orm.createQueryBuilder.mockReturnValue(makeQb([entity]));
 
       const result = await repository.findById(entity.id);
 
@@ -79,7 +101,7 @@ describe('DepartmentRepository', () => {
     });
 
     it('returns NotFoundError when entity does not exist', async () => {
-      orm.findOne.mockResolvedValue(null);
+      orm.createQueryBuilder.mockReturnValue(makeQb([]));
 
       const result = await repository.findById('bad-id');
 
@@ -93,7 +115,9 @@ describe('DepartmentRepository', () => {
     });
 
     it('returns NetworkError when ORM throws', async () => {
-      orm.findOne.mockRejectedValue(new Error('timeout'));
+      orm.createQueryBuilder.mockImplementation(() => {
+        throw new Error('timeout');
+      });
 
       const result = await repository.findById('any-id');
 
@@ -144,7 +168,7 @@ describe('DepartmentRepository', () => {
     it('calls orm.update and re-fetches the department', async () => {
       const entity = makeEntity();
       orm.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
-      orm.findOne.mockResolvedValue(entity);
+      orm.createQueryBuilder.mockReturnValue(makeQb([entity]));
 
       const result = await repository.update(entity.id, {
         name: 'Updated Dept',

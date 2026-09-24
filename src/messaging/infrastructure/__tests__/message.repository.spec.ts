@@ -15,6 +15,7 @@ const msgEntity: MessageEntity = {
   type: MessageType.ANNOUNCEMENT,
   targetGroup: MessageTargetGroup.ALL,
   targetId: null,
+  memberIds: [],
   status: MessageStatus.DRAFT,
   scheduledAt: null,
   sentAt: null,

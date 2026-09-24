@@ -7,7 +7,11 @@ import { DamageReportsController } from '../damage-reports.controller';
 import { InventoryService } from '../../application/inventory.service';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
-import { DamageReportStatus } from '../../domain/damage-report';
+import {
+  DamageStatus,
+  DamageType,
+  DamageSeverity,
+} from '../../domain/damage-report';
 
 const CAT_ID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 const ITEM_ID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
@@ -17,29 +21,32 @@ const mockCategory = {
   id: CAT_ID,
   name: 'Electronics',
   description: null,
+  leaderId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
 const mockItem = {
   id: ITEM_ID,
   name: 'Projector',
+  code: 'PROJ-001',
   categoryId: CAT_ID,
-  quantity: 5,
-  unit: 'pieces',
-  minStockLevel: 1,
-  location: null,
-  description: null,
+  totalQty: 5,
+  availableQty: 5,
+  condition: 'good',
   createdAt: new Date(),
   updatedAt: new Date(),
 };
 const mockReport = {
   id: REPORT_ID,
   itemId: ITEM_ID,
-  quantityDamaged: 1,
+  reportedByName: 'Jane Doe',
+  damageType: DamageType.BROKEN,
+  severity: DamageSeverity.MINOR,
+  quantityAffected: 1,
   description: 'Screen cracked',
-  reportedBy: 'user-uuid',
-  status: DamageReportStatus.PENDING,
-  resolvedAt: null,
+  reportDate: '2026-09-01',
+  status: DamageStatus.PENDING,
+  resolution: null,
   notes: null,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -158,7 +165,7 @@ describe('Inventory Controllers', () => {
     mockService.createItem.mockResolvedValue(mockItem);
     const res = await request(app.getHttpServer())
       .post('/inventory/items')
-      .send({ name: 'Projector', categoryId: CAT_ID, unit: 'pieces' })
+      .send({ name: 'Projector', code: 'PROJ-001', categoryId: CAT_ID })
       .expect(201);
     expect(res.body.name).toBe('Projector');
   });
@@ -171,12 +178,15 @@ describe('Inventory Controllers', () => {
   });
 
   it('POST /inventory/items/:id/adjust-stock → 201', async () => {
-    mockService.adjustStock.mockResolvedValue({ ...mockItem, quantity: 10 });
+    mockService.adjustStock.mockResolvedValue({
+      ...mockItem,
+      availableQty: 10,
+    });
     const res = await request(app.getHttpServer())
       .post(`/inventory/items/${ITEM_ID}/adjust-stock`)
-      .send({ delta: 5 })
+      .send({ adjustment: 5 })
       .expect(201);
-    expect(res.body.quantity).toBe(10);
+    expect(res.body.availableQty).toBe(10);
   });
 
   it('PATCH /inventory/items/:id → 200', async () => {
@@ -212,7 +222,7 @@ describe('Inventory Controllers', () => {
     const res = await request(app.getHttpServer())
       .get(`/inventory/damage-reports/${REPORT_ID}`)
       .expect(200);
-    expect(res.body.status).toBe(DamageReportStatus.PENDING);
+    expect(res.body.status).toBe(DamageStatus.PENDING);
   });
 
   it('POST /inventory/damage-reports → 201', async () => {
@@ -221,23 +231,26 @@ describe('Inventory Controllers', () => {
       .post('/inventory/damage-reports')
       .send({
         itemId: ITEM_ID,
-        quantityDamaged: 1,
+        reportedByName: 'Jane Doe',
+        damageType: DamageType.BROKEN,
+        severity: DamageSeverity.MINOR,
+        quantityAffected: 1,
         description: 'Screen cracked',
       })
       .expect(201);
-    expect(res.body.status).toBe(DamageReportStatus.PENDING);
+    expect(res.body.status).toBe(DamageStatus.PENDING);
   });
 
   it('PATCH /inventory/damage-reports/:id → 200', async () => {
     mockService.updateDamageReport.mockResolvedValue({
       ...mockReport,
-      status: DamageReportStatus.REVIEWED,
+      status: DamageStatus.INVESTIGATING,
     });
     const res = await request(app.getHttpServer())
       .patch(`/inventory/damage-reports/${REPORT_ID}`)
-      .send({ status: DamageReportStatus.REVIEWED })
+      .send({ status: DamageStatus.INVESTIGATING })
       .expect(200);
-    expect(res.body.status).toBe(DamageReportStatus.REVIEWED);
+    expect(res.body.status).toBe(DamageStatus.INVESTIGATING);
   });
 
   it('DELETE /inventory/damage-reports/:id → 204', async () => {

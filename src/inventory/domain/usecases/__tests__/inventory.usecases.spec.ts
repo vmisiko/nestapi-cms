@@ -20,12 +20,18 @@ import type { IInventoryItemRepository } from '../../i-inventory-item.repository
 import type { IDamageReportRepository } from '../../i-damage-report.repository';
 import type { InventoryCategory } from '../../inventory-category';
 import type { InventoryItem } from '../../inventory-item';
-import { DamageReportStatus, type DamageReport } from '../../damage-report';
+import {
+  DamageStatus,
+  DamageType,
+  DamageSeverity,
+  type DamageReport,
+} from '../../damage-report';
 
 const mockCategory: InventoryCategory = {
   id: 'cat-uuid',
   name: 'Electronics',
   description: null,
+  leaderId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -33,12 +39,11 @@ const mockCategory: InventoryCategory = {
 const mockItem: InventoryItem = {
   id: 'item-uuid',
   name: 'Projector',
+  code: 'PROJ-001',
   categoryId: 'cat-uuid',
-  quantity: 5,
-  unit: 'pieces',
-  minStockLevel: 1,
-  location: 'Store Room A',
-  description: null,
+  totalQty: 5,
+  availableQty: 5,
+  condition: 'good',
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -46,11 +51,14 @@ const mockItem: InventoryItem = {
 const mockReport: DamageReport = {
   id: 'report-uuid',
   itemId: 'item-uuid',
-  quantityDamaged: 1,
+  reportedByName: 'Jane Doe',
+  damageType: DamageType.BROKEN,
+  severity: DamageSeverity.MINOR,
+  quantityAffected: 1,
   description: 'Screen cracked',
-  reportedBy: 'user-uuid',
-  status: DamageReportStatus.PENDING,
-  resolvedAt: null,
+  reportDate: '2026-09-01',
+  status: DamageStatus.PENDING,
+  resolution: null,
   notes: null,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -144,8 +152,8 @@ describe('Inventory Item Use Cases', () => {
     itemRepo.create.mockResolvedValue(Either.right(mockItem));
     const result = await new CreateItemUseCase(itemRepo).execute({
       name: 'Projector',
+      code: 'PROJ-001',
       categoryId: 'cat-uuid',
-      unit: 'pieces',
     });
     expect(result.isRight()).toBe(true);
   });
@@ -170,7 +178,7 @@ describe('Inventory Item Use Cases', () => {
     it('adjusts stock upward successfully', async () => {
       itemRepo.findById.mockResolvedValue(Either.right(mockItem));
       itemRepo.adjustStock.mockResolvedValue(
-        Either.right({ ...mockItem, quantity: 10 }),
+        Either.right({ ...mockItem, availableQty: 10 }),
       );
       const result = await new AdjustItemStockUseCase(itemRepo).execute(
         'item-uuid',
@@ -181,7 +189,7 @@ describe('Inventory Item Use Cases', () => {
 
     it('rejects negative result below zero', async () => {
       itemRepo.findById.mockResolvedValue(
-        Either.right({ ...mockItem, quantity: 2 }),
+        Either.right({ ...mockItem, availableQty: 2 }),
       );
       const result = await new AdjustItemStockUseCase(itemRepo).execute(
         'item-uuid',
@@ -243,21 +251,24 @@ describe('Damage Report Use Cases', () => {
     damageRepo.create.mockResolvedValue(Either.right(mockReport));
     const result = await new CreateDamageReportUseCase(damageRepo).execute({
       itemId: 'item-uuid',
-      quantityDamaged: 1,
+      reportedByName: 'Jane Doe',
+      damageType: DamageType.BROKEN,
+      severity: DamageSeverity.MINOR,
+      quantityAffected: 1,
       description: 'Screen cracked',
-      reportedBy: 'user-uuid',
+      reportDate: '2026-09-01',
     });
     expect(result.isRight()).toBe(true);
   });
 
   it('UpdateDamageReportUseCase updates status', async () => {
     damageRepo.update.mockResolvedValue(
-      Either.right({ ...mockReport, status: DamageReportStatus.REVIEWED }),
+      Either.right({ ...mockReport, status: DamageStatus.INVESTIGATING }),
     );
     const result = await new UpdateDamageReportUseCase(damageRepo).execute(
       'report-uuid',
       {
-        status: DamageReportStatus.REVIEWED,
+        status: DamageStatus.INVESTIGATING,
       },
     );
     expect(result.isRight()).toBe(true);

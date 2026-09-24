@@ -6,7 +6,7 @@ import { DamageReportRepository } from '../damage-report.repository';
 import { InventoryCategoryEntity } from '../inventory-category.entity';
 import { InventoryItemEntity } from '../inventory-item.entity';
 import { DamageReportEntity } from '../damage-report.entity';
-import { DamageReportStatus } from '../../domain/damage-report';
+import { DamageStatus } from '../../domain/damage-report';
 
 const catEntity = {
   id: 'cat-uuid',
@@ -33,7 +33,7 @@ const reportEntity = {
   quantityDamaged: 1,
   description: 'Screen cracked',
   reportedBy: 'user-uuid',
-  status: DamageReportStatus.PENDING,
+  status: DamageStatus.PENDING,
   resolvedAt: null,
   notes: null,
   createdAt: new Date(),
@@ -192,9 +192,12 @@ describe('DamageReportRepository', () => {
     ormMock.save.mockResolvedValue(reportEntity);
     const result = await repo.create({
       itemId: 'item-uuid',
-      quantityDamaged: 1,
+      reportedByName: 'Jane Doe',
+      damageType: 'broken',
+      severity: 'minor',
+      quantityAffected: 1,
       description: 'Screen cracked',
-      reportedBy: 'user-uuid',
+      reportDate: '2026-09-01',
     });
     expect(result.isRight()).toBe(true);
   });

@@ -414,13 +414,36 @@ describe('MembersController', () => {
         .expect(400);
     });
 
-    it('returns 400 when a row has invalid email format', async () => {
+    it('silently drops an unparseable email rather than rejecting the row', async () => {
+      // BulkMemberRowDto's @Transform on `email` returns undefined for
+      // anything that doesn't look like an address, and the field is
+      // @IsOptional() — so an invalid email no longer fails validation for
+      // the whole row. This is intentional for CSV bulk-import: one bad
+      // email in a 2500-row file shouldn't reject that member outright.
+      service.bulkImport.mockResolvedValue({
+        imported: 1,
+        duplicates: 0,
+        errors: [],
+        members: [makeMember()],
+      });
+
       await request(app.getHttpServer())
         .post('/members/bulk-import')
         .send({
           rows: [{ fullName: 'Test Member', email: 'not-an-email' }],
         })
-        .expect(400);
+        .expect(201);
+
+      expect(service.bulkImport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          rows: [
+            expect.objectContaining({
+              fullName: 'Test Member',
+              email: undefined,
+            }),
+          ],
+        }),
+      );
     });
 
     it('returns 400 when fellowshipId is not a UUID', async () => {
