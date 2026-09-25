@@ -2,7 +2,9 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { MemberRepository } from '../member.repository';
 import { MemberEntity } from '../member.entity';
+import { MemberStatusHistoryEntity } from '../member-status-history.entity';
 import { FellowshipEntity } from '../../../fellowships/infrastructure/fellowship.entity';
+import { MemberStatus } from '../../domain/member';
 import { makeMember, ID1, ID2 } from '../../../test/fixtures';
 
 const makeMemberEntity = (): MemberEntity => {
@@ -46,6 +48,7 @@ describe('MemberRepository', () => {
     update: jest.Mock;
     delete: jest.Mock;
   };
+  let statusHistoryOrm: { create: jest.Mock; save: jest.Mock };
 
   beforeEach(async () => {
     orm = {
@@ -56,6 +59,10 @@ describe('MemberRepository', () => {
       update: jest.fn(),
       delete: jest.fn(),
     };
+    statusHistoryOrm = {
+      create: jest.fn((data: unknown) => data),
+      save: jest.fn().mockResolvedValue(undefined),
+    };
 
     const module = await Test.createTestingModule({
       providers: [
@@ -64,6 +71,10 @@ describe('MemberRepository', () => {
         {
           provide: getRepositoryToken(FellowshipEntity),
           useValue: { find: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(MemberStatusHistoryEntity),
+          useValue: statusHistoryOrm,
         },
       ],
     }).compile();
@@ -169,6 +180,24 @@ describe('MemberRepository', () => {
       ).toBe('John');
     });
 
+    it('records the initial status transition, backdated to joinedAt', async () => {
+      const entity = makeMemberEntity();
+      entity.status = MemberStatus.GUEST;
+      entity.joinedAt = '2026-02-15';
+      orm.create.mockReturnValue(entity);
+      orm.save.mockResolvedValue(entity);
+
+      await repository.create({ firstName: 'John', lastName: 'Doe' });
+
+      expect(statusHistoryOrm.create).toHaveBeenCalledWith({
+        memberId: entity.id,
+        fromStatus: null,
+        toStatus: MemberStatus.GUEST,
+        changedAt: new Date('2026-02-15'),
+      });
+      expect(statusHistoryOrm.save).toHaveBeenCalled();
+    });
+
     it('returns NetworkError when save throws', async () => {
       orm.create.mockReturnValue(makeMemberEntity());
       orm.save.mockRejectedValue(new Error('unique constraint'));
@@ -198,6 +227,7 @@ describe('MemberRepository', () => {
 
       expect(orm.update).toHaveBeenCalledWith(entity.id, { firstName: 'Jane' });
       expect(result.isRight()).toBe(true);
+      expect(statusHistoryOrm.save).not.toHaveBeenCalled();
     });
 
     it('returns NetworkError when orm.update throws', async () => {
@@ -212,6 +242,37 @@ describe('MemberRepository', () => {
           () => null,
         ),
       ).toBe('NetworkError');
+    });
+
+    it('records a status transition when the status actually changes', async () => {
+      const entity = makeMemberEntity();
+      entity.status = MemberStatus.MEMBER;
+      // findOne is used both for the pre-update "before" lookup and findById's
+      // re-fetch after — the same fixture status of MEMBER is fine for both here.
+      orm.findOne.mockResolvedValue(entity);
+      orm.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
+
+      await repository.update(entity.id, { status: MemberStatus.LEADER });
+
+      expect(statusHistoryOrm.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          memberId: entity.id,
+          fromStatus: MemberStatus.MEMBER,
+          toStatus: MemberStatus.LEADER,
+        }),
+      );
+      expect(statusHistoryOrm.save).toHaveBeenCalled();
+    });
+
+    it('does not record a transition when status is passed but unchanged', async () => {
+      const entity = makeMemberEntity();
+      entity.status = MemberStatus.MEMBER;
+      orm.findOne.mockResolvedValue(entity);
+      orm.update.mockResolvedValue({ affected: 1, raw: [], generatedMaps: [] });
+
+      await repository.update(entity.id, { status: MemberStatus.MEMBER });
+
+      expect(statusHistoryOrm.save).not.toHaveBeenCalled();
     });
   });
 
