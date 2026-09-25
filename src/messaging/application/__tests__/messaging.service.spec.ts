@@ -356,12 +356,35 @@ describe('MessagingService', () => {
   // getDeliveries
   // ---------------------------------------------------------------------------
   describe('getDeliveries', () => {
-    it('returns deliveries for a message', async () => {
+    it('returns a paginated page of deliveries for a message', async () => {
       mockDeliveryRepo.findByMessage.mockResolvedValue(
-        Either.right([mockDelivery]),
+        Either.right({
+          deliveries: [mockDelivery],
+          total: 1,
+          page: 1,
+          limit: 50,
+        }),
       );
       const result = await service.getDeliveries('msg-uuid');
-      expect(result).toHaveLength(1);
+      expect(result.deliveries).toHaveLength(1);
+      expect(result.total).toBe(1);
+      expect(mockDeliveryRepo.findByMessage).toHaveBeenCalledWith(
+        'msg-uuid',
+        1,
+        50,
+      );
+    });
+
+    it('passes through the requested page and limit', async () => {
+      mockDeliveryRepo.findByMessage.mockResolvedValue(
+        Either.right({ deliveries: [], total: 0, page: 2, limit: 20 }),
+      );
+      await service.getDeliveries('msg-uuid', 2, 20);
+      expect(mockDeliveryRepo.findByMessage).toHaveBeenCalledWith(
+        'msg-uuid',
+        2,
+        20,
+      );
     });
 
     it('throws HttpException on repository error', async () => {

@@ -164,26 +164,33 @@ export class RetentionService {
 
   private async getMonthlyTrend() {
     const now = new Date();
-    const points: { month: string; eligible: number; rate: number }[] = [];
 
-    for (let i = TREND_MONTHS - 1; i >= 0; i--) {
+    // Each month's cohort is independent of the others, so run all 6 queries
+    // concurrently instead of awaiting them one at a time in the loop — this
+    // was previously the slowest part of getStats() despite each individual
+    // query being cheap, since 6 round trips were paid serially.
+    const months = Array.from({ length: TREND_MONTHS }, (_, idx) => {
+      const i = TREND_MONTHS - 1 - idx;
       const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
-      const from = monthStart.toISOString().slice(0, 10);
-      const to = monthEnd.toISOString().slice(0, 10);
+      return { monthStart, monthEnd };
+    });
 
-      const { eligible, rate } = await this.getCohortRetention(30, from, to);
-      points.push({
-        month: monthStart.toLocaleString('en-US', {
-          month: 'short',
-          year: 'numeric',
-        }),
-        eligible,
-        rate,
-      });
-    }
-
-    return points;
+    return Promise.all(
+      months.map(async ({ monthStart, monthEnd }) => {
+        const from = monthStart.toISOString().slice(0, 10);
+        const to = monthEnd.toISOString().slice(0, 10);
+        const { eligible, rate } = await this.getCohortRetention(30, from, to);
+        return {
+          month: monthStart.toLocaleString('en-US', {
+            month: 'short',
+            year: 'numeric',
+          }),
+          eligible,
+          rate,
+        };
+      }),
+    );
   }
 
   async getAtRiskMembers(page = 1, limit = 20) {

@@ -61,6 +61,32 @@ export class DeliveryResponseDto {
   }
 }
 
+export class PaginatedDeliveryResponseDto {
+  @ApiProperty({ type: [DeliveryResponseDto] })
+  deliveries: DeliveryResponseDto[];
+
+  @ApiProperty()
+  total: number;
+
+  @ApiProperty()
+  page: number;
+
+  @ApiProperty()
+  limit: number;
+
+  constructor(data: {
+    deliveries: MessageDelivery[];
+    total: number;
+    page: number;
+    limit: number;
+  }) {
+    this.deliveries = data.deliveries.map((d) => new DeliveryResponseDto(d));
+    this.total = data.total;
+    this.page = data.page;
+    this.limit = data.limit;
+  }
+}
+
 export class DeliveryStatsResponseDto {
   @ApiProperty()
   total: number;
