@@ -16,6 +16,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { AuthService } from '../application/auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -42,6 +43,9 @@ export class AuthController {
     description: 'Returns accessToken; sets refresh_token cookie',
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  // Credential brute-forcing is the primary threat on this endpoint —
+  // tighter than the global default.
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -91,6 +95,9 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiResponse({ status: 204, description: 'Password updated' })
   @ApiResponse({ status: 401, description: 'Current password incorrect' })
+  // An authenticated attacker with a stolen access token could otherwise
+  // brute-force the current-password check.
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Patch('me/password')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
