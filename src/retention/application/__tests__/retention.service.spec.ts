@@ -134,6 +134,25 @@ describe('RetentionService', () => {
       expect(stats.cohortRetention.d30.rate).toBe(0);
     });
 
+    it('reports a trend month with no eligible cohort as null, not 0%', async () => {
+      // A cohort summary card (d30/d60/d90) legitimately shows 0% for zero
+      // eligible members, but the monthly trend chart must be able to tell
+      // "no cohort yet" apart from "cohort retained nobody" — otherwise a
+      // month like the current one (too recent to have 30-day-old members)
+      // reads as a 0% retention dip instead of missing data.
+      memberOrm.createQueryBuilder.mockReturnValue(
+        makeQb({ getRawOne: { eligible: '0', retained: '0' } }),
+      );
+
+      const stats = await service.getStats({});
+
+      expect(stats.trend).toHaveLength(6);
+      for (const point of stats.trend) {
+        expect(point.eligible).toBe(0);
+        expect(point.rate).toBeNull();
+      }
+    });
+
     it('skips department/fellowship breakdowns when no filter is given', async () => {
       const stats = await service.getStats({});
 
