@@ -57,6 +57,12 @@ export class MemberResponseDto {
   @ApiProperty()
   isInternational: boolean;
 
+  @ApiProperty({ nullable: true })
+  invitedByMemberId: string | null;
+
+  @ApiProperty({ nullable: true })
+  invitedByName: string | null;
+
   @ApiProperty()
   createdAt: Date;
 

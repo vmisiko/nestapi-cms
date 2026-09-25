@@ -22,6 +22,8 @@ function makeMember(overrides: Partial<Member> = {}): Member {
     churchRole: null,
     isOnline: false,
     isInternational: false,
+    invitedByMemberId: null,
+    invitedByName: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,

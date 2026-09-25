@@ -46,6 +46,10 @@ export class MemberFiltersDto {
   search?: string;
 
   @IsOptional()
+  @IsUUID()
+  invitedByMemberId?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)

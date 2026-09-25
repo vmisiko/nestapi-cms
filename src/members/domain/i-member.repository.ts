@@ -20,6 +20,7 @@ export interface MemberFilters {
   activityStatus?: ActivityStatus;
   joinDateRange?: 'all' | 'recently' | 'week' | 'month';
   search?: string;
+  invitedByMemberId?: string;
   page?: number;
   limit?: number;
 }
@@ -40,6 +41,8 @@ export interface CreateMemberData {
   churchRole?: ChurchRole | null;
   isOnline?: boolean;
   isInternational?: boolean;
+  invitedByMemberId?: string | null;
+  invitedByName?: string | null;
 }
 
 export interface UpdateMemberData {
@@ -57,6 +60,8 @@ export interface UpdateMemberData {
   churchRole?: ChurchRole | null;
   isOnline?: boolean;
   isInternational?: boolean;
+  invitedByMemberId?: string | null;
+  invitedByName?: string | null;
 }
 
 export interface BulkImportRow {

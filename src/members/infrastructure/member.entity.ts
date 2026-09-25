@@ -82,6 +82,21 @@ export class MemberEntity {
   @Column({ name: 'is_international', type: 'boolean', default: false })
   isInternational: boolean;
 
+  @Column({ name: 'invited_by_member_id', type: 'uuid', nullable: true })
+  invitedByMemberId: string | null;
+
+  @ManyToOne('MemberEntity', { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'invited_by_member_id' })
+  invitedByMember?: MemberEntity;
+
+  @Column({
+    name: 'invited_by_name',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
+  invitedByName: string | null;
+
   @ManyToMany(() => DepartmentEntity, (dept) => dept.members)
   @JoinTable({
     name: 'member_departments',
