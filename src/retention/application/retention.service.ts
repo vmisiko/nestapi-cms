@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MemberEntity } from '../../members/infrastructure/member.entity';
+import { MemberStatusHistoryEntity } from '../../members/infrastructure/member-status-history.entity';
 import { AttendanceRecordEntity } from '../../attendance/infrastructure/attendance-record.entity';
 import { AttendanceSessionEntity } from '../../attendance/infrastructure/attendance-session.entity';
 import { FollowUpEntity } from '../../follow-ups/infrastructure/follow-up.entity';
@@ -27,6 +28,8 @@ export class RetentionService {
   constructor(
     @InjectRepository(MemberEntity)
     private readonly memberOrm: Repository<MemberEntity>,
+    @InjectRepository(MemberStatusHistoryEntity)
+    private readonly statusHistoryOrm: Repository<MemberStatusHistoryEntity>,
     @InjectRepository(FollowUpEntity)
     private readonly followUpOrm: Repository<FollowUpEntity>,
     @InjectRepository(DepartmentEntity)
@@ -60,9 +63,10 @@ export class RetentionService {
       guestConversion: {
         ...guestConversion,
         note:
-          'Approximation: share of members who joined 30+ days ago and currently have status ' +
-          'member/leader. Member status has no change history, so members created directly as ' +
-          'member/leader are indistinguishable from real guest conversions.',
+          'Share of members who started as a guest (30+ days ago) and have since had a recorded ' +
+          'status change to member or leader. Based on member_status_history, tracked from when ' +
+          'that table was introduced — members whose status changed before then have no history ' +
+          "and won't appear in either count.",
       },
       followUpCompletion,
       trend,
@@ -111,27 +115,53 @@ export class RetentionService {
     };
   }
 
+  /**
+   * True cohort-transition metric backed by member_status_history: "total" is
+   * members who *started* as a guest (their first recorded status, from
+   * member_status_history.from_status IS NULL) in the window, and old enough
+   * for the 30-day conversion window to have elapsed; "converted" is how many
+   * of those have since had a recorded transition to member/leader. Replaces
+   * the old approximation, which only compared current status against join
+   * date and couldn't tell a real guest conversion from a member created
+   * directly as member/leader.
+   */
   private async getGuestConversion(from?: string, to?: string) {
-    const qb = this.memberOrm
-      .createQueryBuilder('m')
-      .where(
-        `m.joined_at <= (CURRENT_DATE - INTERVAL '${GUEST_CONVERSION_WINDOW_DAYS} days')`,
-      );
+    const params: unknown[] = [];
+    let dateFilter = '';
+    if (from) {
+      params.push(from);
+      dateFilter += ` AND starts.started_at >= $${params.length}`;
+    }
+    if (to) {
+      params.push(to);
+      dateFilter += ` AND starts.started_at <= $${params.length}`;
+    }
 
-    if (from) qb.andWhere('m.joined_at >= :from', { from });
-    if (to) qb.andWhere('m.joined_at <= :to', { to });
-
-    const row = await qb
-      .select('COUNT(*)', 'total')
-      .addSelect(
-        'COUNT(*) FILTER (WHERE m.status IN (:...convertedStatuses))',
-        'converted',
+    const [row] = await this.statusHistoryOrm.manager.query<
+      Array<{ total: string; converted: string }>
+    >(
+      `
+      WITH starts AS (
+        SELECT member_id, changed_at AS started_at
+        FROM member_status_history
+        WHERE from_status IS NULL AND to_status = '${MemberStatus.GUEST}'
       )
-      .setParameter('convertedStatuses', [
-        MemberStatus.MEMBER,
-        MemberStatus.LEADER,
-      ])
-      .getRawOne<{ total: string; converted: string }>();
+      SELECT
+        COUNT(*)::int AS total,
+        COUNT(*) FILTER (
+          WHERE EXISTS (
+            SELECT 1 FROM member_status_history h
+            WHERE h.member_id = starts.member_id
+              AND h.to_status IN ('${MemberStatus.MEMBER}', '${MemberStatus.LEADER}')
+              AND h.changed_at > starts.started_at
+          )
+        )::int AS converted
+      FROM starts
+      WHERE starts.started_at <= (CURRENT_DATE - INTERVAL '${GUEST_CONVERSION_WINDOW_DAYS} days')
+      ${dateFilter}
+      `,
+      params,
+    );
 
     const total = Number(row?.total ?? 0);
     const converted = Number(row?.converted ?? 0);

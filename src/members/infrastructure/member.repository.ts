@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { parse } from 'csv-parse/sync';
 import { MemberEntity } from './member.entity';
+import { MemberStatusHistoryEntity } from './member-status-history.entity';
 import { FellowshipEntity } from '../../fellowships/infrastructure/fellowship.entity';
 import type {
   IMemberRepository,
@@ -68,7 +69,31 @@ export class MemberRepository implements IMemberRepository {
     private readonly orm: Repository<MemberEntity>,
     @InjectRepository(FellowshipEntity)
     private readonly fellowshipOrm: Repository<FellowshipEntity>,
+    @InjectRepository(MemberStatusHistoryEntity)
+    private readonly statusHistoryOrm: Repository<MemberStatusHistoryEntity>,
   ) {}
+
+  /**
+   * Records a status transition for the guest-conversion metric
+   * (retention.service.ts). changedAt defaults to now, but the initial
+   * transition on creation is backdated to the member's joined_at so cohort
+   * queries that filter on "when they started as a guest" line up with the
+   * member's real join date, not whenever this row happened to be inserted.
+   */
+  private async recordStatusChange(
+    memberId: string,
+    fromStatus: MemberEntity['status'] | null,
+    toStatus: MemberEntity['status'],
+    changedAt?: Date,
+  ): Promise<void> {
+    const entry = this.statusHistoryOrm.create({
+      memberId,
+      fromStatus,
+      toStatus,
+      ...(changedAt ? { changedAt } : {}),
+    });
+    await this.statusHistoryOrm.save(entry);
+  }
 
   async findAll(
     filters?: MemberFilters,
@@ -153,6 +178,12 @@ export class MemberRepository implements IMemberRepository {
     try {
       const entity = this.orm.create(data);
       const saved = await this.orm.save(entity);
+      await this.recordStatusChange(
+        saved.id,
+        null,
+        saved.status,
+        new Date(saved.joinedAt),
+      );
       return Either.right(this.toMember(saved));
     } catch {
       return Either.left(
@@ -166,7 +197,16 @@ export class MemberRepository implements IMemberRepository {
     data: UpdateMemberData,
   ): Promise<Either<DataError, Member>> {
     try {
+      const before = data.status
+        ? await this.orm.findOne({ where: { id }, select: ['id', 'status'] })
+        : null;
+
       await this.orm.update(id, data);
+
+      if (before && data.status && data.status !== before.status) {
+        await this.recordStatusChange(id, before.status, data.status);
+      }
+
       return this.findById(id);
     } catch {
       return Either.left(
@@ -401,6 +441,12 @@ export class MemberRepository implements IMemberRepository {
                 activityStatus: 'active' as const,
               } as Partial<MemberEntity>);
               const saved = await this.orm.save(entity);
+              await this.recordStatusChange(
+                saved.id,
+                null,
+                saved.status,
+                new Date(saved.joinedAt),
+              );
               result.imported++;
               result.members.push(this.toMember(saved));
             } catch (err: unknown) {

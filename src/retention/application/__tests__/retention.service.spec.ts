@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { RetentionService } from '../retention.service';
 import { MemberEntity } from '../../../members/infrastructure/member.entity';
+import { MemberStatusHistoryEntity } from '../../../members/infrastructure/member-status-history.entity';
 import { AttendanceRecordEntity } from '../../../attendance/infrastructure/attendance-record.entity';
 import { AttendanceSessionEntity } from '../../../attendance/infrastructure/attendance-session.entity';
 import { FollowUpEntity } from '../../../follow-ups/infrastructure/follow-up.entity';
@@ -37,6 +38,7 @@ describe('RetentionService', () => {
     manager: { query: jest.Mock };
   };
   let followUpOrm: { createQueryBuilder: jest.Mock };
+  let statusHistoryOrm: { manager: { query: jest.Mock } };
 
   const emptyRepo = () => ({
     createQueryBuilder: jest.fn().mockReturnValue(makeQb()),
@@ -58,11 +60,20 @@ describe('RetentionService', () => {
           makeQb({ getRawOne: { total: '20', completed: '15' } }),
         ),
     };
+    statusHistoryOrm = {
+      manager: {
+        query: jest.fn().mockResolvedValue([{ total: '5', converted: '3' }]),
+      },
+    };
 
     const module = await Test.createTestingModule({
       providers: [
         RetentionService,
         { provide: getRepositoryToken(MemberEntity), useValue: memberOrm },
+        {
+          provide: getRepositoryToken(MemberStatusHistoryEntity),
+          useValue: statusHistoryOrm,
+        },
         { provide: getRepositoryToken(FollowUpEntity), useValue: followUpOrm },
         {
           provide: getRepositoryToken(DepartmentEntity),
@@ -109,10 +120,35 @@ describe('RetentionService', () => {
       });
     });
 
-    it('includes a documented caveat on the guest conversion metric', async () => {
+    it('includes a documented note on the guest conversion metric', async () => {
       const stats = await service.getStats({});
 
-      expect(stats.guestConversion.note).toContain('no change history');
+      expect(stats.guestConversion.note).toContain('member_status_history');
+    });
+
+    it('computes guest conversion from member_status_history, not current status', async () => {
+      const stats = await service.getStats({});
+
+      expect(stats.guestConversion).toEqual({
+        total: 5,
+        converted: 3,
+        rate: 60,
+        note: expect.any(String),
+      });
+      expect(statusHistoryOrm.manager.query).toHaveBeenCalled();
+      const [sql] = statusHistoryOrm.manager.query.mock.calls[0] as [string];
+      expect(sql).toContain('from_status IS NULL');
+      expect(sql).toContain("to_status = 'guest'");
+    });
+
+    it('passes from/to as query parameters, not interpolated into the SQL', async () => {
+      await service.getStats({ from: '2026-01-01', to: '2026-02-01' });
+
+      const call = statusHistoryOrm.manager.query.mock.calls.find(
+        (c: unknown[]) => (c[0] as string).includes('WITH starts AS'),
+      ) as [string, unknown[]];
+      expect(call[1]).toEqual(['2026-01-01', '2026-02-01']);
+      expect(call[0]).not.toContain('2026-01-01');
     });
 
     it('returns a 6-point monthly trend', async () => {

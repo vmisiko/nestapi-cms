@@ -463,6 +463,42 @@ async function seed(q: Query) {
     memberRows,
   );
 
+  // ---- member status history (backs the true guest-conversion metric).
+  // Every member gets an initial "became a guest" event at joined_at; members
+  // who are now 'member'/'leader' also get a second event simulating when
+  // they converted, so the demo's conversion rate reflects a real cohort
+  // transition instead of showing 0% just because the raw seed assigns final
+  // statuses directly rather than walking each member through a guest phase.
+  const statusHistoryRows: unknown[][] = [];
+  for (const m of members) {
+    statusHistoryRows.push([
+      randomUUID(),
+      m.id,
+      null,
+      'guest',
+      daysAgo(m.joinedDaysAgo).toISOString(),
+    ]);
+    if (m.status !== 'guest') {
+      const daysAfterJoin = Math.min(
+        int(14, 45),
+        Math.max(1, m.joinedDaysAgo - 1),
+      );
+      statusHistoryRows.push([
+        randomUUID(),
+        m.id,
+        'guest',
+        m.status,
+        daysAgo(m.joinedDaysAgo - daysAfterJoin).toISOString(),
+      ]);
+    }
+  }
+  await insertRows(
+    q,
+    'member_status_history',
+    ['id', 'member_id', 'from_status', 'to_status', 'changed_at'],
+    statusHistoryRows,
+  );
+
   // ---- fellowship leaders (two fellowships are left without one on purpose, to show alerts)
   for (const f of fellowships.slice(0, fellowships.length)) {
     const idx = fellowships.indexOf(f);
@@ -947,6 +983,7 @@ async function seed(q: Query) {
 
   return {
     members: members.length,
+    statusHistoryEvents: statusHistoryRows.length,
     fellowships: fellowships.length,
     departments: DEPARTMENTS.length,
     sessions: sessions.length,
