@@ -187,7 +187,11 @@ export class RetentionService {
             year: 'numeric',
           }),
           eligible,
-          rate,
+          // Distinguish "no cohort yet" (e.g. the current month, whose
+          // members haven't reached the 30-day mark) from an eligible
+          // cohort that genuinely retained 0% — the former should read as
+          // a gap on the trend chart, not a 0% dip.
+          rate: eligible > 0 ? rate : null,
         };
       }),
     );
