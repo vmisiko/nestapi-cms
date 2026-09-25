@@ -35,6 +35,8 @@ export interface Member {
   churchRole: ChurchRole | null;
   isOnline: boolean;
   isInternational: boolean;
+  invitedByMemberId: string | null;
+  invitedByName: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

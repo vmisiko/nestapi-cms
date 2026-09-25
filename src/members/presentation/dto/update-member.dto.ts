@@ -74,4 +74,13 @@ export class UpdateMemberDto {
   @IsOptional()
   @IsBoolean()
   isInternational?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  invitedByMemberId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  invitedByName?: string | null;
 }

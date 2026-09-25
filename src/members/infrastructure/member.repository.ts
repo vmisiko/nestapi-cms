@@ -122,6 +122,10 @@ export class MemberRepository implements IMemberRepository {
         qb.andWhere('m.activity_status = :activityStatus', {
           activityStatus: filters.activityStatus,
         });
+      if (filters?.invitedByMemberId)
+        qb.andWhere('m.invited_by_member_id = :invitedByMemberId', {
+          invitedByMemberId: filters.invitedByMemberId,
+        });
       if (filters?.search) {
         qb.andWhere(
           "(LOWER(m.first_name || ' ' || m.last_name) LIKE :search OR LOWER(m.email) LIKE :search)",
@@ -793,6 +797,8 @@ export class MemberRepository implements IMemberRepository {
     churchRole: (e.churchRole as ChurchRole) ?? null,
     isOnline: e.isOnline ?? false,
     isInternational: e.isInternational ?? false,
+    invitedByMemberId: e.invitedByMemberId ?? null,
+    invitedByName: e.invitedByName ?? null,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
   });
