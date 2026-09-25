@@ -6,6 +6,7 @@ import type {
   IMessageDeliveryRepository,
   CreateDeliveryData,
   UpdateDeliveryStatusData,
+  PaginatedDeliveries,
 } from '../domain/i-message-delivery.repository';
 import type {
   MessageDelivery,
@@ -40,13 +41,22 @@ export class MessageDeliveryRepository implements IMessageDeliveryRepository {
 
   async findByMessage(
     messageId: string,
-  ): Promise<Either<DataError, MessageDelivery[]>> {
+    page: number,
+    limit: number,
+  ): Promise<Either<DataError, PaginatedDeliveries>> {
     try {
-      const entities = await this.orm.find({
+      const [entities, total] = await this.orm.findAndCount({
         where: { messageId },
         order: { createdAt: 'ASC' },
+        skip: (page - 1) * limit,
+        take: limit,
       });
-      return Either.right(entities.map(this.toDelivery));
+      return Either.right({
+        deliveries: entities.map(this.toDelivery),
+        total,
+        page,
+        limit,
+      });
     } catch {
       return Either.left(
         new DataError('NetworkError', 'Failed to fetch deliveries'),

@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -22,9 +23,10 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { MessageResponseDto } from './dto/message-response.dto';
 import {
-  DeliveryResponseDto,
+  PaginatedDeliveryResponseDto,
   DeliveryStatsResponseDto,
 } from './dto/delivery-response.dto';
+import { DeliveryQueryDto } from './dto/delivery-query.dto';
 import { UwaziiDlrDto } from './dto/uwazii-dlr.dto';
 import { SendResultDto } from './dto/send-result.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -115,19 +117,26 @@ export class MessagingController {
   }
 
   /**
-   * List every individual SMS delivery record for a message.
-   * Each row represents one member recipient and tracks their delivery status.
+   * List every individual SMS delivery record for a message, paginated —
+   * a single campaign can have one row per member in the congregation.
    */
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'List individual SMS delivery records for a message',
+    summary: 'List individual SMS delivery records for a message (paginated)',
   })
-  @ApiResponse({ status: 200, type: [DeliveryResponseDto] })
+  @ApiResponse({ status: 200, type: PaginatedDeliveryResponseDto })
   @Get(':id/deliveries')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  async getDeliveries(@Param('id', ParseUUIDPipe) id: string) {
-    const deliveries = await this.service.getDeliveries(id);
-    return deliveries.map((d) => new DeliveryResponseDto(d));
+  async getDeliveries(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: DeliveryQueryDto,
+  ) {
+    const result = await this.service.getDeliveries(
+      id,
+      query.page,
+      query.limit,
+    );
+    return new PaginatedDeliveryResponseDto(result);
   }
 
   /**

@@ -153,13 +153,21 @@ describe('MessagingController', () => {
       .expect(204);
   });
 
-  it('GET /messaging/:id/deliveries → 200 with delivery list', async () => {
-    mockService.getDeliveries.mockResolvedValue([mockDelivery]);
+  it('GET /messaging/:id/deliveries → 200 with a paginated delivery list', async () => {
+    mockService.getDeliveries.mockResolvedValue({
+      deliveries: [mockDelivery],
+      total: 1,
+      page: 1,
+      limit: 50,
+    });
     const res = await request(app.getHttpServer())
       .get(`/messaging/${MSG_ID}/deliveries`)
       .expect(200);
-    expect(res.body).toHaveLength(1);
-    expect(res.body[0].status).toBe(DeliveryStatus.SENT);
+    expect(res.body.deliveries).toHaveLength(1);
+    expect(res.body.deliveries[0].status).toBe(DeliveryStatus.SENT);
+    expect(res.body.total).toBe(1);
+    expect(res.body.page).toBe(1);
+    expect(res.body.limit).toBe(50);
   });
 
   it('GET /messaging/:id/deliveries/stats → 200 with stats', async () => {

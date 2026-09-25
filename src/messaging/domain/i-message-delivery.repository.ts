@@ -22,13 +22,22 @@ export interface UpdateDeliveryStatusData {
   deliveredAt?: Date | null;
 }
 
+export interface PaginatedDeliveries {
+  deliveries: MessageDelivery[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface IMessageDeliveryRepository {
   createMany(
     data: CreateDeliveryData[],
   ): Promise<Either<DataError, MessageDelivery[]>>;
   findByMessage(
     messageId: string,
-  ): Promise<Either<DataError, MessageDelivery[]>>;
+    page: number,
+    limit: number,
+  ): Promise<Either<DataError, PaginatedDeliveries>>;
   findById(id: string): Promise<Either<DataError, MessageDelivery>>;
   findByUwaziRef(
     ref: string,

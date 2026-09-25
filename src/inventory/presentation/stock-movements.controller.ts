@@ -8,6 +8,7 @@ import {
 } from '@nestjs/swagger';
 import { InventoryService } from '../application/inventory.service';
 import { StockMovementResponseDto } from './dto/stock-movement-response.dto';
+import { StockMovementsQueryDto } from './dto/stock-movements-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -25,10 +26,8 @@ export class StockMovementsController {
   @ApiResponse({ status: 200, type: [StockMovementResponseDto] })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @Get()
-  async findAll(@Query('limit') limit?: string) {
-    const movements = await this.service.findAllMovements(
-      limit ? parseInt(limit, 10) : 50,
-    );
+  async findAll(@Query() query: StockMovementsQueryDto) {
+    const movements = await this.service.findAllMovements(query.limit ?? 50);
     return movements.map((m) => new StockMovementResponseDto(m));
   }
 }

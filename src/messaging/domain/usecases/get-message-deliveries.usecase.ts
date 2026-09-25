@@ -2,7 +2,7 @@ import type { IMessageDeliveryRepository } from '../i-message-delivery.repositor
 
 export class GetMessageDeliveriesUseCase {
   constructor(private readonly repo: IMessageDeliveryRepository) {}
-  execute(messageId: string) {
-    return this.repo.findByMessage(messageId);
+  execute(messageId: string, page: number, limit: number) {
+    return this.repo.findByMessage(messageId, page, limit);
   }
 }

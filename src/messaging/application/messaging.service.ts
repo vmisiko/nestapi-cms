@@ -17,11 +17,9 @@ import type { CreateMessageDto } from '../presentation/dto/create-message.dto';
 import type { UpdateMessageDto } from '../presentation/dto/update-message.dto';
 import type { Message } from '../domain/message';
 import { MessageStatus } from '../domain/message';
-import type {
-  MessageDelivery,
-  DeliveryStats,
-} from '../domain/message-delivery';
+import type { DeliveryStats } from '../domain/message-delivery';
 import { DeliveryStatus } from '../domain/message-delivery';
+import type { PaginatedDeliveries } from '../domain/i-message-delivery.repository';
 import { toHttpException } from '../../core/application/http-exception.util';
 
 export interface SendResult {
@@ -261,8 +259,16 @@ export class MessagingService {
     });
   }
 
-  async getDeliveries(messageId: string): Promise<MessageDelivery[]> {
-    const result = await this.getDeliveriesUseCase.execute(messageId);
+  async getDeliveries(
+    messageId: string,
+    page = 1,
+    limit = 50,
+  ): Promise<PaginatedDeliveries> {
+    const result = await this.getDeliveriesUseCase.execute(
+      messageId,
+      page,
+      limit,
+    );
     return result.fold(
       (err) => {
         throw toHttpException(err.kind, err.message);

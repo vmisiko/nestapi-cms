@@ -23,6 +23,7 @@
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
     "seed:admin": "ts-node seeds/seed-admin.ts",
     "seed:demo": "ts-node seeds/seed-demo.ts",
+    "seed:load-test": "ts-node seeds/load-test-seed.ts",
     "db:setup": "ts-node seeds/seed-admin.ts",
     "swagger:generate": "ts-node scripts/generate-swagger.ts"
   },
