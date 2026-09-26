@@ -4,10 +4,12 @@ import type { FellowshipZone } from './fellowship-zone';
 
 export interface CreateFellowshipZoneData {
   name: string;
+  overseerId?: string | null;
 }
 
 export interface UpdateFellowshipZoneData {
   name?: string;
+  overseerId?: string | null;
 }
 
 export interface IFellowshipZoneRepository {

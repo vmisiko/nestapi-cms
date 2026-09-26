@@ -18,6 +18,7 @@ export const makeZone = (
 ): FellowshipZone => ({
   id: ID1,
   name: 'North Zone',
+  overseerId: null,
   createdAt: DATE,
   updatedAt: DATE,
   ...overrides,

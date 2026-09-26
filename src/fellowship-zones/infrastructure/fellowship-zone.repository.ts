@@ -95,6 +95,7 @@ export class FellowshipZoneRepository implements IFellowshipZoneRepository {
   private toZone = (e: FellowshipZoneEntity): FellowshipZone => ({
     id: e.id,
     name: e.name,
+    overseerId: e.overseerId ?? null,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
   });

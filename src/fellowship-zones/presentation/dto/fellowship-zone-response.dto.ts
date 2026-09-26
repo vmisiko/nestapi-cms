@@ -8,6 +8,9 @@ export class FellowshipZoneResponseDto {
   @ApiProperty()
   name: string;
 
+  @ApiProperty({ nullable: true })
+  overseerId: string | null;
+
   @ApiProperty()
   createdAt: Date;
 
@@ -17,6 +20,7 @@ export class FellowshipZoneResponseDto {
   constructor(zone: FellowshipZone) {
     this.id = zone.id;
     this.name = zone.name;
+    this.overseerId = zone.overseerId;
     this.createdAt = zone.createdAt;
     this.updatedAt = zone.updatedAt;
   }
