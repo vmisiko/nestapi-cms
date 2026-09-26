@@ -10,6 +10,7 @@ import * as request from 'supertest';
 import { MembersController } from '../members.controller';
 import { MembersService } from '../../application/members.service';
 import { MilestonesService } from '../../../milestones/application/milestones.service';
+import { CareService } from '../../../care/application/care.service';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { UserRole } from '../../../users/domain/user';
@@ -39,11 +40,18 @@ const mockMilestonesService = () => ({
   deleteMilestone: jest.fn(),
 });
 
+const mockCareService = () => ({
+  findByMember: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+});
+
 const allowAllGuard = {
   canActivate: (ctx: ExecutionContext) => {
     const req = ctx.switchToHttp().getRequest<{ user: unknown }>();
     req.user = {
       id: '00000000-0000-4000-8000-000000000001',
+      sub: '00000000-0000-4000-8000-000000000001',
       role: UserRole.SUPER_ADMIN,
     };
     return true;
@@ -54,16 +62,19 @@ describe('MembersController', () => {
   let app: INestApplication;
   let service: ReturnType<typeof mockMembersService>;
   let milestonesService: ReturnType<typeof mockMilestonesService>;
+  let careService: ReturnType<typeof mockCareService>;
 
   beforeEach(async () => {
     service = mockMembersService();
     milestonesService = mockMilestonesService();
+    careService = mockCareService();
 
     const module = await Test.createTestingModule({
       controllers: [MembersController],
       providers: [
         { provide: MembersService, useValue: service },
         { provide: MilestonesService, useValue: milestonesService },
+        { provide: CareService, useValue: careService },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -608,6 +619,107 @@ describe('MembersController', () => {
 
       await request(app.getHttpServer())
         .delete(`/members/${ID1}/milestones/${ID2}`)
+        .expect(404);
+    });
+  });
+
+  describe('GET /members/:id/care-records', () => {
+    it('returns 200 with a member\'s care records', async () => {
+      careService.findByMember.mockResolvedValue([
+        {
+          id: ID2,
+          memberId: ID1,
+          type: 'visit',
+          notes: 'Home visit after hospital discharge',
+          handledBy: null,
+          status: 'open',
+          createdAt: new Date('2026-09-20'),
+          updatedAt: new Date('2026-09-20'),
+          resolvedAt: null,
+        },
+      ]);
+
+      await request(app.getHttpServer())
+        .get(`/members/${ID1}/care-records`)
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveLength(1);
+          expect(res.body[0].type).toBe('visit');
+          expect(res.body[0].status).toBe('open');
+        });
+    });
+  });
+
+  describe('POST /members/:id/care-records', () => {
+    it('returns 201 on successful logging, recording the current user as handler', async () => {
+      careService.create.mockResolvedValue({
+        id: ID2,
+        memberId: ID1,
+        type: 'call',
+        notes: null,
+        handledBy: '00000000-0000-4000-8000-000000000001',
+        status: 'open',
+        createdAt: new Date('2026-09-26'),
+        updatedAt: new Date('2026-09-26'),
+        resolvedAt: null,
+      });
+
+      await request(app.getHttpServer())
+        .post(`/members/${ID1}/care-records`)
+        .send({ type: 'call' })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.memberId).toBe(ID1);
+          expect(res.body.handledBy).toBe('00000000-0000-4000-8000-000000000001');
+        });
+
+      expect(careService.create).toHaveBeenCalledWith(
+        ID1,
+        { type: 'call' },
+        '00000000-0000-4000-8000-000000000001',
+      );
+    });
+
+    it('returns 400 for an invalid type', async () => {
+      await request(app.getHttpServer())
+        .post(`/members/${ID1}/care-records`)
+        .send({ type: 'not-a-real-type' })
+        .expect(400);
+    });
+  });
+
+  describe('PATCH /members/:id/care-records/:careRecordId', () => {
+    it('returns 200 with the updated record when marked resolved', async () => {
+      careService.update.mockResolvedValue({
+        id: ID2,
+        memberId: ID1,
+        type: 'visit',
+        notes: null,
+        handledBy: null,
+        status: 'resolved',
+        createdAt: new Date('2026-09-20'),
+        updatedAt: new Date('2026-09-26'),
+        resolvedAt: new Date('2026-09-26'),
+      });
+
+      await request(app.getHttpServer())
+        .patch(`/members/${ID1}/care-records/${ID2}`)
+        .send({ status: 'resolved' })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.status).toBe('resolved');
+          expect(res.body.resolvedAt).toBeTruthy();
+        });
+    });
+
+    it('returns 404 when the care record does not exist', async () => {
+      careService.update.mockRejectedValue(
+        new HttpException('Care record not found', HttpStatus.NOT_FOUND),
+      );
+
+      await request(app.getHttpServer())
+        .patch(`/members/${ID1}/care-records/${ID2}`)
+        .send({ status: 'resolved' })
         .expect(404);
     });
   });
