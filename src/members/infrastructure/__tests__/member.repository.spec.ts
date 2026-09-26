@@ -47,6 +47,7 @@ describe('MemberRepository', () => {
     save: jest.Mock;
     update: jest.Mock;
     delete: jest.Mock;
+    manager: { query: jest.Mock };
   };
   let statusHistoryOrm: { create: jest.Mock; save: jest.Mock };
 
@@ -58,6 +59,7 @@ describe('MemberRepository', () => {
       save: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      manager: { query: jest.fn() },
     };
     statusHistoryOrm = {
       create: jest.fn((data: unknown) => data),
@@ -409,6 +411,47 @@ describe('MemberRepository', () => {
           () => null,
         ),
       ).toBe('NetworkError');
+    });
+  });
+
+  describe('getEngagement', () => {
+    it('computes the 60/20/20 weighted score and returns the last-seen date', async () => {
+      orm.manager.query.mockResolvedValue([
+        {
+          attended: '9',
+          attTotal: '10', // 90% attendance -> 0.9 * 60 = 54
+          connected: '1',
+          fuTotal: '2', // 50% follow-up responsiveness -> 0.5 * 20 = 10
+          lastSeenAt: '2026-09-20',
+          hasDepartment: true, // involved -> 1 * 20 = 20
+          fellowshipId: null,
+        },
+      ]);
+
+      const result = await repository.getEngagement(ID1);
+
+      expect(result).toEqual({
+        lastSeenAt: '2026-09-20',
+        engagementScore: 84, // 54 + 10 + 20
+      });
+    });
+
+    it('treats a member with no attendance, follow-ups, or involvement as a 0 score', async () => {
+      orm.manager.query.mockResolvedValue([
+        {
+          attended: '0',
+          attTotal: '0',
+          connected: '0',
+          fuTotal: '0',
+          lastSeenAt: null,
+          hasDepartment: false,
+          fellowshipId: null,
+        },
+      ]);
+
+      const result = await repository.getEngagement(ID1);
+
+      expect(result).toEqual({ lastSeenAt: null, engagementScore: 0 });
     });
   });
 });

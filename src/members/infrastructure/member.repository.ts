@@ -802,4 +802,84 @@ export class MemberRepository implements IMemberRepository {
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
   });
+
+  /**
+   * C5c: last-seen date and a 0-100 engagement score, computed on demand for
+   * one member (the detail view) -- not embedded in findAll(), since running
+   * these joins per row would add real cost to the already-tuned, paginated
+   * member list (see B9). Score = 60% attendance rate in the last 90 days +
+   * 20% follow-up responsiveness (share of contact attempts that reached
+   * "connected") + 20% current department/fellowship involvement (any vs
+   * none). A documented starting formula, not a signed-off one -- revisit
+   * the weights if this needs to be authoritative rather than illustrative.
+   */
+  async getEngagement(memberId: string): Promise<{
+    lastSeenAt: string | null;
+    engagementScore: number;
+  }> {
+    const [row] = await this.orm.manager.query<
+      Array<{
+        attended: string;
+        attTotal: string;
+        connected: string;
+        fuTotal: string;
+        lastSeenAt: string | null;
+        hasDepartment: boolean;
+        fellowshipId: string | null;
+      }>
+    >(
+      `
+      WITH att AS (
+        SELECT
+          COUNT(*) FILTER (WHERE r.status = 'present') AS attended,
+          COUNT(r.id) AS "attTotal"
+        FROM attendance_sessions s
+        LEFT JOIN attendance_records r
+          ON r.session_id = s.id AND r.member_id = $1
+        WHERE s.session_date >= (CURRENT_DATE - INTERVAL '90 days')
+      ),
+      fu AS (
+        SELECT
+          COUNT(*) FILTER (WHERE a.outcome = 'connected') AS connected,
+          COUNT(*) AS "fuTotal"
+        FROM follow_up_tasks t
+        JOIN follow_up_attempts a ON a.task_id = t.id
+        WHERE t.member_id = $1
+      ),
+      seen AS (
+        SELECT MAX(s.session_date) AS "lastSeenAt"
+        FROM attendance_records r
+        JOIN attendance_sessions s ON s.id = r.session_id
+        WHERE r.member_id = $1 AND r.status = 'present'
+      )
+      SELECT
+        att.attended, att."attTotal",
+        fu.connected, fu."fuTotal",
+        seen."lastSeenAt",
+        EXISTS(
+          SELECT 1 FROM member_departments md WHERE md.member_id = $1
+        ) AS "hasDepartment",
+        (SELECT fellowship_id FROM members WHERE id = $1) AS "fellowshipId"
+      FROM att, fu, seen
+      `,
+      [memberId],
+    );
+
+    const attended = Number(row?.attended ?? 0);
+    const attTotal = Number(row?.attTotal ?? 0);
+    const connected = Number(row?.connected ?? 0);
+    const fuTotal = Number(row?.fuTotal ?? 0);
+    const attendanceRatio = attTotal > 0 ? attended / attTotal : 0;
+    const followUpRatio = fuTotal > 0 ? connected / fuTotal : 0;
+    const involvement = row?.hasDepartment || row?.fellowshipId ? 1 : 0;
+
+    const engagementScore = Math.round(
+      attendanceRatio * 60 + followUpRatio * 20 + involvement * 20,
+    );
+
+    return {
+      lastSeenAt: row?.lastSeenAt ?? null,
+      engagementScore,
+    };
+  }
 }

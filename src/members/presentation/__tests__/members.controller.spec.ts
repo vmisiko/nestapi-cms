@@ -9,6 +9,7 @@ import {
 import * as request from 'supertest';
 import { MembersController } from '../members.controller';
 import { MembersService } from '../../application/members.service';
+import { MilestonesService } from '../../../milestones/application/milestones.service';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { UserRole } from '../../../users/domain/user';
@@ -29,6 +30,13 @@ const mockMembersService = () => ({
   assignDepartment: jest.fn(),
   removeDepartment: jest.fn(),
   bulkImport: jest.fn(),
+  getEngagement: jest.fn(),
+});
+
+const mockMilestonesService = () => ({
+  findByMember: jest.fn(),
+  recordMilestone: jest.fn(),
+  deleteMilestone: jest.fn(),
 });
 
 const allowAllGuard = {
@@ -45,13 +53,18 @@ const allowAllGuard = {
 describe('MembersController', () => {
   let app: INestApplication;
   let service: ReturnType<typeof mockMembersService>;
+  let milestonesService: ReturnType<typeof mockMilestonesService>;
 
   beforeEach(async () => {
     service = mockMembersService();
+    milestonesService = mockMilestonesService();
 
     const module = await Test.createTestingModule({
       controllers: [MembersController],
-      providers: [{ provide: MembersService, useValue: service }],
+      providers: [
+        { provide: MembersService, useValue: service },
+        { provide: MilestonesService, useValue: milestonesService },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue(allowAllGuard)
@@ -499,6 +512,103 @@ describe('MembersController', () => {
       await request(app.getHttpServer())
         .delete(`/members/not-a-uuid/departments/${ID2}`)
         .expect(400);
+    });
+  });
+
+  describe('GET /members/:id/engagement', () => {
+    it('returns 200 with last-seen date and engagement score', async () => {
+      service.getEngagement.mockResolvedValue({
+        lastSeenAt: '2026-09-20',
+        engagementScore: 72,
+      });
+
+      await request(app.getHttpServer())
+        .get(`/members/${ID1}/engagement`)
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toEqual({
+            lastSeenAt: '2026-09-20',
+            engagementScore: 72,
+          });
+        });
+    });
+
+    it('returns 400 for non-UUID id', async () => {
+      await request(app.getHttpServer())
+        .get('/members/not-a-uuid/engagement')
+        .expect(400);
+    });
+  });
+
+  describe('GET /members/:id/milestones', () => {
+    it('returns 200 with recorded milestones', async () => {
+      milestonesService.findByMember.mockResolvedValue([
+        {
+          id: ID2,
+          memberId: ID1,
+          milestoneTypeId: ID2,
+          achievedAt: '2026-06-01',
+          notes: null,
+          createdAt: new Date('2026-06-01'),
+        },
+      ]);
+
+      await request(app.getHttpServer())
+        .get(`/members/${ID1}/milestones`)
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveLength(1);
+          expect(res.body[0].achievedAt).toBe('2026-06-01');
+        });
+    });
+  });
+
+  describe('POST /members/:id/milestones', () => {
+    it('returns 201 on successful recording', async () => {
+      milestonesService.recordMilestone.mockResolvedValue({
+        id: ID2,
+        memberId: ID1,
+        milestoneTypeId: ID2,
+        achievedAt: '2026-09-25',
+        notes: null,
+        createdAt: new Date('2026-09-25'),
+      });
+
+      await request(app.getHttpServer())
+        .post(`/members/${ID1}/milestones`)
+        .send({ milestoneTypeId: ID2 })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body.memberId).toBe(ID1);
+          expect(res.body.milestoneTypeId).toBe(ID2);
+        });
+    });
+
+    it('returns 400 when milestoneTypeId is missing', async () => {
+      await request(app.getHttpServer())
+        .post(`/members/${ID1}/milestones`)
+        .send({})
+        .expect(400);
+    });
+  });
+
+  describe('DELETE /members/:id/milestones/:milestoneId', () => {
+    it('returns 204 on successful deletion', async () => {
+      milestonesService.deleteMilestone.mockResolvedValue(undefined);
+
+      await request(app.getHttpServer())
+        .delete(`/members/${ID1}/milestones/${ID2}`)
+        .expect(204);
+    });
+
+    it('returns 404 when the milestone does not exist', async () => {
+      milestonesService.deleteMilestone.mockRejectedValue(
+        new HttpException('Milestone not found', HttpStatus.NOT_FOUND),
+      );
+
+      await request(app.getHttpServer())
+        .delete(`/members/${ID1}/milestones/${ID2}`)
+        .expect(404);
     });
   });
 });

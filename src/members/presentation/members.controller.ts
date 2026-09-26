@@ -33,13 +33,19 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../users/domain/user';
+import { MilestonesService } from '../../milestones/application/milestones.service';
+import { RecordMemberMilestoneDto } from '../../milestones/presentation/dto/record-member-milestone.dto';
+import { MemberMilestoneResponseDto } from '../../milestones/presentation/dto/milestone-type-response.dto';
 
 @ApiTags('Members')
 @ApiBearerAuth()
 @Controller('members')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class MembersController {
-  constructor(private readonly service: MembersService) {}
+  constructor(
+    private readonly service: MembersService,
+    private readonly milestonesService: MilestonesService,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -98,6 +104,47 @@ export class MembersController {
   @ApiResponse({ status: 404, description: 'Member not found' })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     return new MemberResponseDto(await this.service.findById(id));
+  }
+
+  @Get(':id/engagement')
+  @ApiOperation({
+    summary:
+      "A member's last-seen date and a 0-100 engagement score (see MemberRepository.getEngagement for the formula)",
+  })
+  async getEngagement(@Param('id', ParseUUIDPipe) id: string) {
+    return this.service.getEngagement(id);
+  }
+
+  @Get(':id/milestones')
+  @ApiOperation({ summary: "List a member's recorded spiritual milestones" })
+  @ApiResponse({ status: 200, type: [MemberMilestoneResponseDto] })
+  async findMilestones(@Param('id', ParseUUIDPipe) id: string) {
+    const milestones = await this.milestonesService.findByMember(id);
+    return milestones.map((m) => new MemberMilestoneResponseDto(m));
+  }
+
+  @Post(':id/milestones')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({ summary: 'Record a spiritual milestone for a member' })
+  @ApiResponse({ status: 201, type: MemberMilestoneResponseDto })
+  async recordMilestone(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RecordMemberMilestoneDto,
+  ) {
+    return new MemberMilestoneResponseDto(
+      await this.milestonesService.recordMilestone(id, dto),
+    );
+  }
+
+  @Delete(':id/milestones/:milestoneId')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Remove one of a member's recorded milestones" })
+  @ApiResponse({ status: 204 })
+  async removeMilestone(
+    @Param('milestoneId', ParseUUIDPipe) milestoneId: string,
+  ) {
+    await this.milestonesService.deleteMilestone(milestoneId);
   }
 
   @Get(':id/departments')
