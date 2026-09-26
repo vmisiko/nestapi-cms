@@ -20,6 +20,7 @@ import { FollowUpsModule } from './follow-ups/follow-ups.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AutomationModule } from './automation/automation.module';
 import { RetentionModule } from './retention/retention.module';
+import { MilestonesModule } from './milestones/milestones.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { RetentionModule } from './retention/retention.module';
     NotificationsModule,
     AutomationModule,
     RetentionModule,
+    MilestonesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
