@@ -8,6 +8,7 @@ import { MemberRepository } from './infrastructure/member.repository';
 import { MembersService } from './application/members.service';
 import { MembersController } from './presentation/members.controller';
 import { AutomationModule } from '../automation/automation.module';
+import { MilestonesModule } from '../milestones/milestones.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AutomationModule } from '../automation/automation.module';
     ]),
     MulterModule.register({ limits: { fileSize: 10 * 1024 * 1024 } }),
     AutomationModule,
+    MilestonesModule,
   ],
   controllers: [MembersController],
   providers: [MemberRepository, MembersService],

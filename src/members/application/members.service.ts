@@ -159,4 +159,10 @@ export class MembersService {
       (preview) => preview,
     );
   }
+
+  async getEngagement(
+    memberId: string,
+  ): Promise<{ lastSeenAt: string | null; engagementScore: number }> {
+    return this.repo.getEngagement(memberId);
+  }
 }
