@@ -21,6 +21,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AutomationModule } from './automation/automation.module';
 import { RetentionModule } from './retention/retention.module';
 import { MilestonesModule } from './milestones/milestones.module';
+import { CareModule } from './care/care.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { MilestonesModule } from './milestones/milestones.module';
     AutomationModule,
     RetentionModule,
     MilestonesModule,
+    CareModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

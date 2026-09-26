@@ -36,6 +36,11 @@ import { UserRole } from '../../users/domain/user';
 import { MilestonesService } from '../../milestones/application/milestones.service';
 import { RecordMemberMilestoneDto } from '../../milestones/presentation/dto/record-member-milestone.dto';
 import { MemberMilestoneResponseDto } from '../../milestones/presentation/dto/milestone-type-response.dto';
+import { CareService } from '../../care/application/care.service';
+import { CreateCareRecordDto } from '../../care/presentation/dto/create-care-record.dto';
+import { UpdateCareRecordDto } from '../../care/presentation/dto/update-care-record.dto';
+import { CareRecordResponseDto } from '../../care/presentation/dto/care-record-response.dto';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('Members')
 @ApiBearerAuth()
@@ -45,6 +50,7 @@ export class MembersController {
   constructor(
     private readonly service: MembersService,
     private readonly milestonesService: MilestonesService,
+    private readonly careService: CareService,
   ) {}
 
   @Get()
@@ -145,6 +151,44 @@ export class MembersController {
     @Param('milestoneId', ParseUUIDPipe) milestoneId: string,
   ) {
     await this.milestonesService.deleteMilestone(milestoneId);
+  }
+
+  @Get(':id/care-records')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({ summary: "List a member's welfare/care records" })
+  @ApiResponse({ status: 200, type: [CareRecordResponseDto] })
+  async findCareRecords(@Param('id', ParseUUIDPipe) id: string) {
+    const records = await this.careService.findByMember(id);
+    return records.map((r) => new CareRecordResponseDto(r));
+  }
+
+  @Post(':id/care-records')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({ summary: 'Log a welfare/care contact for a member' })
+  @ApiResponse({ status: 201, type: CareRecordResponseDto })
+  async createCareRecord(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CreateCareRecordDto,
+    @CurrentUser('sub') userId?: string,
+  ) {
+    return new CareRecordResponseDto(
+      await this.careService.create(id, dto, userId),
+    );
+  }
+
+  @Patch(':id/care-records/:careRecordId')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: "Update a care record's notes/type, or mark it resolved",
+  })
+  @ApiResponse({ status: 200, type: CareRecordResponseDto })
+  async updateCareRecord(
+    @Param('careRecordId', ParseUUIDPipe) careRecordId: string,
+    @Body() dto: UpdateCareRecordDto,
+  ) {
+    return new CareRecordResponseDto(
+      await this.careService.update(careRecordId, dto),
+    );
   }
 
   @Get(':id/departments')
