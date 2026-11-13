@@ -1,6 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import type { Member } from '../../domain/member';
-import { MemberStatus, MemberType, ActivityStatus } from '../../domain/member';
+import {
+  MemberStatus,
+  MemberType,
+  StayType,
+  ActivityStatus,
+} from '../../domain/member';
 
 export class MemberResponseDto {
   @ApiProperty()
@@ -56,6 +61,9 @@ export class MemberResponseDto {
 
   @ApiProperty()
   isInternational: boolean;
+
+  @ApiProperty({ enum: StayType, nullable: true })
+  stayType: StayType | null;
 
   @ApiProperty({ nullable: true })
   invitedByMemberId: string | null;

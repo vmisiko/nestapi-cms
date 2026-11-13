@@ -16,6 +16,7 @@ import type {
   BulkPreviewResponse,
 } from '../domain/i-member.repository';
 import type { Member, AssignedDepartment } from '../domain/member';
+import type { StayType } from '../domain/member';
 import { AgeGroup, ChurchRole, Gender } from '../../core/domain/enums';
 import { Either } from '../../core/domain/either';
 import { DataError } from '../../core/domain/data-error';
@@ -118,6 +119,8 @@ export class MemberRepository implements IMemberRepository {
         qb.andWhere('m.member_type = :memberType', {
           memberType: filters.memberType,
         });
+      if (filters?.stayType)
+        qb.andWhere('m.stay_type = :stayType', { stayType: filters.stayType });
       if (filters?.activityStatus)
         qb.andWhere('m.activity_status = :activityStatus', {
           activityStatus: filters.activityStatus,
@@ -797,6 +800,7 @@ export class MemberRepository implements IMemberRepository {
     churchRole: (e.churchRole as ChurchRole) ?? null,
     isOnline: e.isOnline ?? false,
     isInternational: e.isInternational ?? false,
+    stayType: (e.stayType as StayType) ?? null,
     invitedByMemberId: e.invitedByMemberId ?? null,
     invitedByName: e.invitedByName ?? null,
     createdAt: e.createdAt,

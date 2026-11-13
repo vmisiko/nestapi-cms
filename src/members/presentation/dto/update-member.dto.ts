@@ -11,6 +11,7 @@ import {
 import {
   MemberStatus,
   MemberType,
+  StayType,
   ActivityStatus,
   AgeGroup,
   ChurchRole,
@@ -74,6 +75,10 @@ export class UpdateMemberDto {
   @IsOptional()
   @IsBoolean()
   isInternational?: boolean;
+
+  @IsOptional()
+  @IsEnum(StayType)
+  stayType?: StayType | null;
 
   @IsOptional()
   @IsUUID()

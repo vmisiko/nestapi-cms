@@ -1,7 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FollowUpRepository } from '../infrastructure/follow-up.repository';
 import { FollowUpEntity } from '../infrastructure/follow-up.entity';
-import { FollowUpSource, FollowUpStatus } from '../domain/follow-up';
+import {
+  FollowUpPriority,
+  FollowUpSource,
+  FollowUpStatus,
+} from '../domain/follow-up';
 import { CreateFollowUpDto } from '../presentation/dto/create-follow-up.dto';
 import { UpdateFollowUpDto } from '../presentation/dto/update-follow-up.dto';
 import { RecordFollowUpAttemptDto } from '../presentation/dto/record-follow-up-attempt.dto';
@@ -10,8 +14,17 @@ import { RecordFollowUpAttemptDto } from '../presentation/dto/record-follow-up-a
 export class FollowUpService {
   constructor(private readonly repo: FollowUpRepository) {}
 
-  findAll(status?: FollowUpStatus) {
-    return this.repo.findAll(status);
+  findAll(status?: FollowUpStatus, priority?: FollowUpPriority) {
+    return this.repo.findAll(status, priority);
+  }
+
+  async countUnassigned() {
+    return { unassigned: await this.repo.countUnassignedOpen() };
+  }
+
+  async assignOwner(taskIds: string[], ownerId: string) {
+    const assigned = await this.repo.assignOwner(taskIds, ownerId);
+    return { requested: taskIds.length, assigned };
   }
 
   async findById(id: string) {

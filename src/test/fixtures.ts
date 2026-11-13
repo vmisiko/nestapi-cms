@@ -76,6 +76,7 @@ export const makeMember = (overrides: Partial<Member> = {}): Member => ({
   churchRole: null,
   isOnline: false,
   isInternational: false,
+  stayType: null,
   invitedByMemberId: null,
   invitedByName: null,
   createdAt: DATE,

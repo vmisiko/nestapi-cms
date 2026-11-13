@@ -20,6 +20,7 @@ import { FollowUpsModule } from './follow-ups/follow-ups.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AutomationModule } from './automation/automation.module';
 import { RetentionModule } from './retention/retention.module';
+import { VisitorsModule } from './visitors/visitors.module';
 import { MilestonesModule } from './milestones/milestones.module';
 import { CareModule } from './care/care.module';
 
@@ -55,6 +56,7 @@ import { CareModule } from './care/care.module';
     NotificationsModule,
     AutomationModule,
     RetentionModule,
+    VisitorsModule,
     MilestonesModule,
     CareModule,
   ],

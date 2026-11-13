@@ -13,6 +13,11 @@ export enum MemberStatus {
   LEADER = 'leader',
 }
 
+export enum StayType {
+  PERMANENT = 'permanent',
+  TEMPORARY = 'temporary',
+}
+
 export enum MemberType {
   ADULT = 'adult',
   CHILD = 'child',
@@ -35,6 +40,7 @@ export interface Member {
   churchRole: ChurchRole | null;
   isOnline: boolean;
   isInternational: boolean;
+  stayType: StayType | null;
   invitedByMemberId: string | null;
   invitedByName: string | null;
   createdAt: Date;

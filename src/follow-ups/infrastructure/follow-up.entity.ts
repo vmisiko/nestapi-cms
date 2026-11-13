@@ -9,7 +9,11 @@ import {
 } from 'typeorm';
 import { MemberEntity } from '../../members/infrastructure/member.entity';
 import { UserEntity } from '../../users/infrastructure/user.entity';
-import { FollowUpSource, FollowUpStatus } from '../domain/follow-up';
+import {
+  FollowUpPriority,
+  FollowUpSource,
+  FollowUpStatus,
+} from '../domain/follow-up';
 
 @Entity('follow_up_tasks')
 export class FollowUpEntity {
@@ -46,6 +50,14 @@ export class FollowUpEntity {
     default: FollowUpStatus.OPEN,
   })
   status: FollowUpStatus;
+
+  @Column({
+    type: 'enum',
+    enum: FollowUpPriority,
+    enumName: 'follow_up_priority',
+    default: FollowUpPriority.NORMAL,
+  })
+  priority: FollowUpPriority;
 
   @Column({
     type: 'enum',

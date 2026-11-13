@@ -2,6 +2,7 @@ import { FollowUpService } from '../follow-up.service';
 import {
   FollowUpContactMethod,
   FollowUpOutcome,
+  FollowUpPriority,
   FollowUpSource,
   FollowUpStatus,
 } from '../../domain/follow-up';
@@ -165,5 +166,34 @@ describe('FollowUpService', () => {
     const service = new FollowUpService(repo as never);
 
     await expect(service.findEscalations('missing-id')).rejects.toThrow();
+  });
+
+  it('filters the task list by status and priority', async () => {
+    const repo = { findAll: jest.fn().mockResolvedValue([task]) };
+    const service = new FollowUpService(repo as never);
+
+    await service.findAll(FollowUpStatus.OPEN, FollowUpPriority.URGENT);
+
+    expect(repo.findAll).toHaveBeenCalledWith(
+      FollowUpStatus.OPEN,
+      FollowUpPriority.URGENT,
+    );
+  });
+
+  it('assigns several tasks to one worker and reports how many changed', async () => {
+    const repo = { assignOwner: jest.fn().mockResolvedValue(2) };
+    const service = new FollowUpService(repo as never);
+
+    const result = await service.assignOwner(['a', 'b', 'c'], 'worker-id');
+
+    expect(repo.assignOwner).toHaveBeenCalledWith(['a', 'b', 'c'], 'worker-id');
+    expect(result).toEqual({ requested: 3, assigned: 2 });
+  });
+
+  it('counts open tasks that still need a worker', async () => {
+    const repo = { countUnassignedOpen: jest.fn().mockResolvedValue(36) };
+    const service = new FollowUpService(repo as never);
+
+    expect(await service.countUnassigned()).toEqual({ unassigned: 36 });
   });
 });
