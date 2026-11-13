@@ -4,7 +4,11 @@ import { FollowUpRepository } from '../follow-up.repository';
 import { FollowUpEntity } from '../follow-up.entity';
 import { FollowUpAttemptEntity } from '../follow-up-attempt.entity';
 import { FollowUpEscalationEntity } from '../follow-up-escalation.entity';
-import { FollowUpSource, FollowUpStatus } from '../../domain/follow-up';
+import {
+  FollowUpPriority,
+  FollowUpSource,
+  FollowUpStatus,
+} from '../../domain/follow-up';
 
 const makeTask = (overrides: Partial<FollowUpEntity> = {}): FollowUpEntity => {
   const task = new FollowUpEntity();
@@ -111,6 +115,30 @@ describe('FollowUpRepository', () => {
       });
 
       expect(result?.completedAt).toBe(completedAt);
+    });
+
+    it('keeps every other field when a field is explicitly undefined (priority-only update)', async () => {
+      const task = makeTask();
+      tasksOrm.findOne.mockResolvedValue(task);
+      tasksOrm.save.mockImplementation((t) => Promise.resolve(t));
+
+      // This is the shape a parsed UpdateFollowUpDto has when only priority was sent.
+      const result = await repository.update('task-id', {
+        memberId: undefined,
+        ownerId: undefined,
+        title: undefined,
+        notes: undefined,
+        dueDate: undefined,
+        status: undefined,
+        priority: FollowUpPriority.HIGH,
+      });
+
+      expect(result).toMatchObject({
+        status: FollowUpStatus.OPEN,
+        title: task.title,
+        dueDate: task.dueDate,
+        priority: FollowUpPriority.HIGH,
+      });
     });
 
     it('returns null when the task does not exist', async () => {

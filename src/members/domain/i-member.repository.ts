@@ -5,6 +5,7 @@ import type {
   AssignedDepartment,
   MemberStatus,
   MemberType,
+  StayType,
   ActivityStatus,
   AgeGroup,
   ChurchRole,
@@ -17,6 +18,7 @@ export interface MemberFilters {
   hasFellowship?: boolean;
   departmentId?: string;
   memberType?: MemberType;
+  stayType?: StayType;
   activityStatus?: ActivityStatus;
   joinDateRange?: 'all' | 'recently' | 'week' | 'month';
   search?: string;
@@ -41,6 +43,7 @@ export interface CreateMemberData {
   churchRole?: ChurchRole | null;
   isOnline?: boolean;
   isInternational?: boolean;
+  stayType?: StayType | null;
   invitedByMemberId?: string | null;
   invitedByName?: string | null;
 }
@@ -60,6 +63,7 @@ export interface UpdateMemberData {
   churchRole?: ChurchRole | null;
   isOnline?: boolean;
   isInternational?: boolean;
+  stayType?: StayType | null;
   invitedByMemberId?: string | null;
   invitedByName?: string | null;
 }

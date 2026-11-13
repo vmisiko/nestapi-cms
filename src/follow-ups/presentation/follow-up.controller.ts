@@ -17,10 +17,11 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../users/domain/user';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { FollowUpService } from '../application/follow-up.service';
-import { FollowUpStatus } from '../domain/follow-up';
+import { FollowUpPriority, FollowUpStatus } from '../domain/follow-up';
 import { CreateFollowUpDto } from './dto/create-follow-up.dto';
 import { UpdateFollowUpDto } from './dto/update-follow-up.dto';
 import { RecordFollowUpAttemptDto } from './dto/record-follow-up-attempt.dto';
+import { AssignFollowUpsDto } from './dto/assign-follow-ups.dto';
 
 @ApiTags('Follow-ups')
 @ApiBearerAuth()
@@ -31,12 +32,32 @@ export class FollowUpController {
 
   @Get()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
-  @ApiOperation({ summary: 'List follow-up tasks, optionally by status' })
+  @ApiOperation({
+    summary: 'List follow-up tasks, optionally by status and priority',
+  })
   findAll(
     @Query('status', new ParseEnumPipe(FollowUpStatus, { optional: true }))
     status?: FollowUpStatus,
+    @Query('priority', new ParseEnumPipe(FollowUpPriority, { optional: true }))
+    priority?: FollowUpPriority,
   ) {
-    return this.service.findAll(status);
+    return this.service.findAll(status, priority);
+  }
+
+  @Get('unassigned/count')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({ summary: 'Count open follow-up tasks with no owner' })
+  countUnassigned() {
+    return this.service.countUnassigned();
+  }
+
+  @Post('assign')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.STAFF)
+  @ApiOperation({
+    summary: 'Assign several open follow-up tasks to one worker',
+  })
+  assign(@Body() dto: AssignFollowUpsDto) {
+    return this.service.assignOwner(dto.taskIds, dto.ownerId);
   }
 
   @Get(':id')

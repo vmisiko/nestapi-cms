@@ -1,11 +1,13 @@
 import {
   IsDateString,
+  IsEnum,
   IsOptional,
   IsString,
   IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { FollowUpPriority } from '../../domain/follow-up';
 
 export class CreateFollowUpDto {
   @IsUUID()
@@ -26,4 +28,8 @@ export class CreateFollowUpDto {
 
   @IsDateString()
   dueDate: string;
+
+  @IsOptional()
+  @IsEnum(FollowUpPriority)
+  priority?: FollowUpPriority;
 }

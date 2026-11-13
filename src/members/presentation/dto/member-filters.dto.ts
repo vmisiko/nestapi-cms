@@ -9,7 +9,12 @@ import {
   Min,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { MemberStatus, MemberType, ActivityStatus } from '../../domain/member';
+import {
+  MemberStatus,
+  MemberType,
+  StayType,
+  ActivityStatus,
+} from '../../domain/member';
 
 export class MemberFiltersDto {
   @IsOptional()
@@ -32,6 +37,10 @@ export class MemberFiltersDto {
   @IsOptional()
   @IsEnum(MemberType)
   memberType?: MemberType;
+
+  @IsOptional()
+  @IsEnum(StayType)
+  stayType?: StayType;
 
   @IsOptional()
   @IsEnum(ActivityStatus)

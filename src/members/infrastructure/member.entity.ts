@@ -82,6 +82,9 @@ export class MemberEntity {
   @Column({ name: 'is_international', type: 'boolean', default: false })
   isInternational: boolean;
 
+  @Column({ name: 'stay_type', type: 'varchar', length: 20, nullable: true })
+  stayType: string | null;
+
   @Column({ name: 'invited_by_member_id', type: 'uuid', nullable: true })
   invitedByMemberId: string | null;
 

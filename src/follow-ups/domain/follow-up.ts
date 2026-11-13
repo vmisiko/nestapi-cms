@@ -4,6 +4,13 @@ export enum FollowUpStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum FollowUpPriority {
+  LOW = 'low',
+  NORMAL = 'normal',
+  HIGH = 'high',
+  URGENT = 'urgent',
+}
+
 export enum FollowUpSource {
   MANUAL = 'manual',
   VISITOR_AUTOMATION = 'visitor_automation',
@@ -35,6 +42,7 @@ export interface FollowUpTask {
   notes: string | null;
   dueDate: string;
   status: FollowUpStatus;
+  priority: FollowUpPriority;
   source: FollowUpSource;
   escalationLevel: number;
   escalatedAt: Date | null;
